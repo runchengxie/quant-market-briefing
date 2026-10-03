@@ -1,0 +1,23 @@
+[project]
+name = "quant-market-briefing"
+version = "0.1.0"
+description = "Frozen-evidence U.S. market research and Chinese briefing producer"
+requires-python = ">=3.11,<3.14"
+dependencies = ["jsonschema>=4.23,<5", "exchange-calendars>=4.5,<5", "filelock>=3.16,<4", "tzdata>=2024.1"]
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[project.scripts]
+market-briefing = "market_briefing.cli:main"
+[tool.hatch.build.targets.wheel]
+packages = ["src/market_briefing"]
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+[tool.ruff]
+line-length = 100
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

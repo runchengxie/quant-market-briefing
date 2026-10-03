@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.evidence.v1",
+      "type": "string"
+    },
+    "market": {
+      "const": "US",
+      "type": "string"
+    },
+    "market_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "timezone": {
+      "const": "America/New_York",
+      "type": "string"
+    },
+    "scheduled_close": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_cutoff": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "publisher",
+          "url",
+          "published_at"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": [
+              "number",
+              "string",
+              "null"
+            ]
+          },
+          "unit": {
+            "enum": [
+              "percentage_points",
+              "count",
+              "usd",
+              "ratio",
+              "index_level",
+              "text"
+            ],
+            "type": "string"
+          },
+          "reference_period": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classification": {
+            "enum": [
+              "actual",
+              "estimate"
+            ],
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verification": {
+            "enum": [
+              "verified",
+              "unverified"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "metric",
+          "value",
+          "unit",
+          "reference_period",
+          "classification",
+          "source_id",
+          "observed_at",
+          "verification"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "market",
+    "market_date",
+    "timezone",
+    "scheduled_close",
+    "evidence_cutoff",
+    "collected_at",
+    "sources",
+    "observations"
+  ],
+  "additionalProperties": false
+}

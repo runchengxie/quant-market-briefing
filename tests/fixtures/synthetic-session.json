@@ -1,0 +1,75 @@
+{
+  "schema_version": "market.evidence.v1",
+  "market": "US",
+  "market_date": "2026-10-02",
+  "timezone": "America/New_York",
+  "scheduled_close": "2026-10-02T20:00:00Z",
+  "evidence_cutoff": "2026-10-02T22:00:00Z",
+  "collected_at": "2026-10-02T22:01:00Z",
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Synthetic fixture; not real market data",
+      "publisher": "Synthetic",
+      "url": "https://example.com/synthetic",
+      "published_at": "2026-10-02T21:00:00Z"
+    }
+  ],
+  "observations": [
+    {
+      "id": "e1",
+      "metric": "sp500_return",
+      "value": 0.73,
+      "unit": "percentage_points",
+      "reference_period": "2026-10-02",
+      "classification": "actual",
+      "source_id": "s1",
+      "observed_at": "2026-10-02T20:00:00Z",
+      "verification": "verified"
+    },
+    {
+      "id": "e2",
+      "metric": "eps_growth",
+      "value": 12,
+      "unit": "percentage_points",
+      "reference_period": "Q3 2026",
+      "classification": "estimate",
+      "source_id": "s1",
+      "observed_at": "2026-10-02T21:00:00Z",
+      "verification": "verified"
+    },
+    {
+      "id": "e3",
+      "metric": "us10y",
+      "value": 5.2,
+      "unit": "percentage_points",
+      "reference_period": "2026-10-02",
+      "classification": "actual",
+      "source_id": "s1",
+      "observed_at": "2026-10-02T21:00:00Z",
+      "verification": "verified"
+    },
+    {
+      "id": "e4",
+      "metric": "ai_capex_growth",
+      "value": 20,
+      "unit": "percentage_points",
+      "reference_period": "Q3 2026",
+      "classification": "estimate",
+      "source_id": "s1",
+      "observed_at": "2026-10-02T21:00:00Z",
+      "verification": "verified"
+    },
+    {
+      "id": "e5",
+      "metric": "breadth",
+      "value": 51,
+      "unit": "percentage_points",
+      "reference_period": "2026-10-02",
+      "classification": "actual",
+      "source_id": "s1",
+      "observed_at": "2026-10-02T21:00:00Z",
+      "verification": "verified"
+    }
+  ]
+}
