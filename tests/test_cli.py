@@ -26,7 +26,7 @@ def test_pipeline_with_fake_model(tmp_path, evidence, analysis, editor_output, m
         "schema=sys.argv[sys.argv.index('--output-schema')+1]\n"
         "target=sys.argv[sys.argv.index('--output-last-message')+1]\n"
         "prompt=sys.stdin.buffer.read().decode('utf-8')\n"
-        f"source={str(analysis_file)!r} if 'analysis.v1' in schema else {str(editor_file)!r}\n"
+        f"source={str(analysis_file)!r} if 'claims' in json.loads(Path(schema).read_text())['properties'] else {str(editor_file)!r}\n"
         "Path(target).write_bytes(Path(source).read_bytes())\n",
         encoding="utf-8",
     )

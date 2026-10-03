@@ -11,6 +11,15 @@ from pathlib import Path
 from jsonschema import Draft202012Validator, FormatChecker
 
 
+def generation_schema(value):
+    """Adapt the provider subset while retaining full local validation."""
+    if isinstance(value, dict):
+        return {key: generation_schema(item) for key, item in value.items() if key != "uniqueItems"}
+    if isinstance(value, list):
+        return [generation_schema(item) for item in value]
+    return value
+
+
 def execute_stage(
     prompt: str,
     schema: Path,
@@ -28,6 +37,9 @@ def execute_stage(
     output.parent.mkdir(parents=True, exist_ok=True)
     invocation_id = uuid.uuid4().hex
     raw = output.parent / f".{output.name}.{invocation_id}.raw.json"
+    schema_data = json.loads(schema.read_text(encoding="utf-8"))
+    provider_schema = output.parent / f".{output.name}.{invocation_id}.schema.json"
+    provider_schema.write_text(json.dumps(generation_schema(schema_data)), encoding="utf-8")
     command = [
         *(command_prefix or ["codex"]),
         "exec",
@@ -38,14 +50,13 @@ def execute_stage(
         "--json",
         "--skip-git-repo-check",
         "--output-schema",
-        str(schema.resolve()),
+        str(provider_schema.resolve()),
         "--output-last-message",
         str(raw.resolve()),
     ]
     if model:
         command.extend(["--model", model])
     command.append("-")
-    schema_data = json.loads(schema.read_text(encoding="utf-8"))
     try:
         for attempt in range(3):
             kwargs = (
@@ -101,3 +112,4 @@ def execute_stage(
         return payload
     finally:
         raw.unlink(missing_ok=True)
+        provider_schema.unlink(missing_ok=True)

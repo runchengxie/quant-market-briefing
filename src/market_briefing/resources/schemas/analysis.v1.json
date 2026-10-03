@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "market.analysis.v1"
+      "const": "market.analysis.v1",
+      "type": "string"
     },
     "claims": {
       "type": "array",
@@ -22,7 +23,8 @@
             "enum": [
               "fact",
               "inference"
-            ]
+            ],
+            "type": "string"
           },
           "evidence_ids": {
             "type": "array",
@@ -38,7 +40,8 @@
               "actual",
               "estimate",
               "mixed"
-            ]
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -60,17 +63,20 @@
             "constructive",
             "neutral",
             "cautious"
-          ]
+          ],
+          "type": "string"
         },
         "confidence": {
           "enum": [
             "high",
             "medium",
             "low"
-          ]
+          ],
+          "type": "string"
         },
         "horizon": {
-          "const": "6-12m"
+          "const": "6-12m",
+          "type": "string"
         }
       },
       "required": [
@@ -93,7 +99,8 @@
               "sector_macro",
               "catalysts",
               "conclusion"
-            ]
+            ],
+            "type": "string"
           },
           "claim_ids": {
             "type": "array",

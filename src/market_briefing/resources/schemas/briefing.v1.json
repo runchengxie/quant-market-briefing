@@ -3,10 +3,12 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "market.briefing.v1"
+      "const": "market.briefing.v1",
+      "type": "string"
     },
     "market": {
-      "const": "US"
+      "const": "US",
+      "type": "string"
     },
     "market_date": {
       "type": "string",
@@ -32,7 +34,8 @@
       "enum": [
         "draft",
         "validated_draft"
-      ]
+      ],
+      "type": "string"
     },
     "headline": {
       "type": "string",
@@ -78,17 +81,20 @@
             "constructive",
             "neutral",
             "cautious"
-          ]
+          ],
+          "type": "string"
         },
         "confidence": {
           "enum": [
             "high",
             "medium",
             "low"
-          ]
+          ],
+          "type": "string"
         },
         "horizon": {
-          "const": "6-12m"
+          "const": "6-12m",
+          "type": "string"
         }
       },
       "required": [
@@ -156,7 +162,8 @@
           "type": "boolean"
         },
         "source_audit_passed": {
-          "const": false
+          "const": false,
+          "type": "boolean"
         },
         "errors": {
           "type": "array",

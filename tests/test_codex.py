@@ -3,8 +3,14 @@ import sys
 
 import pytest
 
-from market_briefing.codex import execute_stage
+from market_briefing.codex import execute_stage, generation_schema
 from market_briefing.contracts import schema_path
+
+
+def test_generation_subset_preserves_local_unique_constraint():
+    original = {"type": "array", "uniqueItems": True, "items": {"type": "string"}}
+    assert "uniqueItems" not in generation_schema(original)
+    assert original["uniqueItems"] is True
 
 
 @pytest.mark.parametrize("mode", ["ok", "exit", "timeout", "badjson", "missing", "badshape"])

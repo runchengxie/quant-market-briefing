@@ -3,17 +3,20 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "market.evidence.v1"
+      "const": "market.evidence.v1",
+      "type": "string"
     },
     "market": {
-      "const": "US"
+      "const": "US",
+      "type": "string"
     },
     "market_date": {
       "type": "string",
       "format": "date"
     },
     "timezone": {
-      "const": "America/New_York"
+      "const": "America/New_York",
+      "type": "string"
     },
     "scheduled_close": {
       "type": "string",
@@ -100,7 +103,8 @@
               "ratio",
               "index_level",
               "text"
-            ]
+            ],
+            "type": "string"
           },
           "reference_period": {
             "type": "string",
@@ -110,7 +114,8 @@
             "enum": [
               "actual",
               "estimate"
-            ]
+            ],
+            "type": "string"
           },
           "source_id": {
             "type": "string",
@@ -124,7 +129,8 @@
             "enum": [
               "verified",
               "unverified"
-            ]
+            ],
+            "type": "string"
           }
         },
         "required": [

@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "schema_version": {
-      "const": "market.source-review.v1"
+      "const": "market.source-review.v1",
+      "type": "string"
     },
     "market_date": {
       "type": "string",
@@ -54,7 +55,8 @@
               "approved",
               "deferred",
               "rejected"
-            ]
+            ],
+            "type": "string"
           },
           "reason": {
             "type": "string",
