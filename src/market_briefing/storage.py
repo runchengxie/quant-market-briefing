@@ -1,4 +1,5 @@
 """External, immutable runtime files."""
+
 import json
 import os
 import re
@@ -14,6 +15,13 @@ def checked_date(value: str) -> str:
         raise ValueError("Expected ISO report date")
     date.fromisoformat(value)
     return value
+
+
+def assert_external_path(path: Path) -> Path:
+    resolved = Path(path).resolve()
+    if any((parent / ".git").exists() for parent in [resolved, *resolved.parents]):
+        raise ValueError("Runtime destination must be outside source repositories")
+    return resolved
 
 
 def write_atomic(path: Path, payload: dict) -> None:
@@ -44,8 +52,9 @@ def allocate_revision(root: Path, market_date: str) -> tuple[Path, int]:
     date_root.mkdir(parents=True, exist_ok=True)
     if date_root.is_symlink():
         raise ValueError("Report directory cannot be a symlink")
-    existing = [int(path.name[1:]) for path in date_root.iterdir()
-                if re.fullmatch(r"r\d{4,}", path.name)]
+    existing = [
+        int(path.name[1:]) for path in date_root.iterdir() if re.fullmatch(r"r\d{4,}", path.name)
+    ]
     revision = max(existing, default=0) + 1
     run_dir = date_root / f"r{revision:04d}"
     run_dir.mkdir()

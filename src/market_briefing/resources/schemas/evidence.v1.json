@@ -88,6 +88,7 @@
           "value": {
             "type": [
               "number",
+              "string",
               "null"
             ]
           },
@@ -97,7 +98,8 @@
               "count",
               "usd",
               "ratio",
-              "index_level"
+              "index_level",
+              "text"
             ]
           },
           "reference_period": {

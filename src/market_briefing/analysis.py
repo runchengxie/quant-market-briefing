@@ -1,4 +1,5 @@
 """Fundamental-first analysis of frozen evidence."""
+
 import json
 from importlib.resources import files
 from pathlib import Path
@@ -25,11 +26,21 @@ def validate_analysis(analysis: dict, evidence: dict) -> None:
 
 def analyze(evidence: dict, config: dict) -> dict:
     validate_document(evidence, "evidence")
-    instructions = files("market_briefing").joinpath("resources", "prompts", "analyst.md").read_text(encoding="utf-8")
+    instructions = (
+        files("market_briefing")
+        .joinpath("resources", "prompts", "analyst.md")
+        .read_text(encoding="utf-8")
+    )
     prompt = instructions + "\n\nFROZEN_EVIDENCE_JSON\n" + json.dumps(evidence, ensure_ascii=False)
     candidate = Path(config["run_dir"]) / "analysis.candidate.json"
-    result = execute_stage(prompt, schema_path("analysis"), candidate, config.get("analyst_model"),
-                           config.get("timeout_seconds", 600), Path(config["run_dir"]),
-                           command_prefix=config.get("command_prefix"))
+    result = execute_stage(
+        prompt,
+        schema_path("analysis"),
+        candidate,
+        config.get("analyst_model"),
+        config.get("timeout_seconds", 600),
+        Path(config["run_dir"]),
+        command_prefix=config.get("command_prefix"),
+    )
     validate_analysis(result, evidence)
     return result

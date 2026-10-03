@@ -1,4 +1,5 @@
 """Source approval bound to all frozen document hashes."""
+
 import hashlib
 from pathlib import Path
 

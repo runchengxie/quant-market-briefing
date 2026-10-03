@@ -7,7 +7,10 @@ def test_valid_evidence(evidence):
     validate_document(evidence, "evidence")
 
 
-@pytest.mark.parametrize("case", ["extra", "timestamp", "unit", "duplicate", "source", "period", "future", "date", "nonfinite"])
+@pytest.mark.parametrize(
+    "case",
+    ["extra", "timestamp", "unit", "duplicate", "source", "period", "future", "date", "nonfinite"],
+)
 def test_reject_invalid_evidence(evidence, case):
     if case == "extra":
         evidence["surprise"] = 1
@@ -35,3 +38,21 @@ def test_analysis_rejects_dangling_claim(analysis):
     analysis["sections"][0]["claim_ids"] = ["absent"]
     with pytest.raises(ValueError):
         validate_document(analysis, "analysis")
+
+
+def test_verified_text_event_is_supported(evidence):
+    event = dict(
+        evidence["observations"][0],
+        id="event",
+        metric="company_announcement",
+        unit="text",
+        value="公司预计下一季度增加资本投入。",
+    )
+    evidence["observations"].append(event)
+    validate_document(evidence, "evidence")
+
+
+def test_numeric_metric_cannot_use_text_unit(evidence):
+    evidence["observations"][0]["unit"] = "text"
+    with pytest.raises(ValueError):
+        validate_document(evidence, "evidence")

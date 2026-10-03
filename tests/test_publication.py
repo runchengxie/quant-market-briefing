@@ -6,7 +6,7 @@ from filelock import Timeout
 
 from market_briefing.editor import assemble_briefing
 from market_briefing.publication import build_bundle
-from market_briefing.review import file_hash, verify_review
+from market_briefing.review import file_hash
 from market_briefing.storage import date_lock, write_atomic
 
 
@@ -14,11 +14,20 @@ def seed(tmp_path, evidence, analysis, editor_output):
     brief = assemble_briefing(editor_output, evidence, analysis, "us-2026-10-02-r0001", 1)
     for name, payload in [("evidence", evidence), ("analysis", analysis), ("briefing", brief)]:
         write_atomic(tmp_path / f"{name}.json", payload)
-    review = {"schema_version": "market.source-review.v1", "market_date": evidence["market_date"],
-              "reviewer": "Synthetic test reviewer", "reviewed_at": datetime.now(UTC).isoformat(),
-              "hashes": {name: file_hash(tmp_path / f"{name}.json") for name in ["evidence", "analysis", "briefing"]},
-              "decisions": [{"claim_id": c["id"], "status": "approved", "reason": "Synthetic fixture only"}
-                            for c in analysis["claims"]]}
+    review = {
+        "schema_version": "market.source-review.v1",
+        "market_date": evidence["market_date"],
+        "reviewer": "Synthetic test reviewer",
+        "reviewed_at": datetime.now(UTC).isoformat(),
+        "hashes": {
+            name: file_hash(tmp_path / f"{name}.json")
+            for name in ["evidence", "analysis", "briefing"]
+        },
+        "decisions": [
+            {"claim_id": c["id"], "status": "approved", "reason": "Synthetic fixture only"}
+            for c in analysis["claims"]
+        ],
+    }
     write_atomic(tmp_path / "review.json", review)
     return review
 
@@ -36,7 +45,9 @@ def test_valid_bundle(tmp_path, evidence, analysis, editor_output):
         build_bundle(tmp_path, tmp_path / "review.json", "a" * 40, "internal")
 
 
-@pytest.mark.parametrize("case", ["changed", "deferred", "rejected", "missing", "date", "early", "badcommit"])
+@pytest.mark.parametrize(
+    "case", ["changed", "deferred", "rejected", "missing", "date", "early", "badcommit"]
+)
 def test_fail_closed_bundle(tmp_path, evidence, analysis, editor_output, case):
     review = seed(tmp_path, evidence, analysis, editor_output)
     if case == "changed":
@@ -52,7 +63,9 @@ def test_fail_closed_bundle(tmp_path, evidence, analysis, editor_output, case):
     if case != "changed":
         (tmp_path / "review.json").write_text(json.dumps(review))
     with pytest.raises(ValueError):
-        build_bundle(tmp_path, tmp_path / "review.json", "" if case == "badcommit" else "a" * 40, "internal")
+        build_bundle(
+            tmp_path, tmp_path / "review.json", "" if case == "badcommit" else "a" * 40, "internal"
+        )
     assert not (tmp_path / "bundle").exists()
 
 

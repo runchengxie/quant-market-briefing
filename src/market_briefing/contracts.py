@@ -50,12 +50,24 @@ def validate_document(payload: dict, kind: str) -> None:
                 raise ValueError("Unresolved source ID")
             if aware_time(item["observed_at"]) > cutoff:
                 raise ValueError("Observation after evidence cutoff")
-            if item["value"] is not None and not math.isfinite(item["value"]):
+            value = item["value"]
+            if value is not None and (isinstance(value, str) != (item["unit"] == "text")):
+                raise ValueError("Observation value type does not match unit")
+            if isinstance(value, str) and not value.strip():
+                raise ValueError("Empty text observation")
+            if isinstance(value, (int, float)) and not math.isfinite(value):
                 raise ValueError("Non-finite observation")
     elif kind == "analysis":
         _unique(payload["claims"], "id")
         topics = [section["topic"] for section in payload["sections"]]
-        if set(topics) != {"fundamentals", "support", "risks", "sector_macro", "catalysts", "conclusion"}:
+        if set(topics) != {
+            "fundamentals",
+            "support",
+            "risks",
+            "sector_macro",
+            "catalysts",
+            "conclusion",
+        }:
             raise ValueError("Missing analysis section")
         known = {claim["id"] for claim in payload["claims"]}
         if any(not set(section["claim_ids"]) <= known for section in payload["sections"]):

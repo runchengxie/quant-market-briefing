@@ -18,8 +18,18 @@ def test_valid_draft_still_requires_review(evidence, analysis, editor_output):
     assert brief["brief_text"].count("\n\n") == 4
 
 
-@pytest.mark.parametrize("bad_text", ["**美股上涨**", "美股上涨；等待验证。", "美股上涨—继续观察。",
-                                    "美股上涨🙂", "美股上涨99%。", "美股上涨，\n\n分段。", "美股上涨\"很好\""])
+@pytest.mark.parametrize(
+    "bad_text",
+    [
+        "**美股上涨**",
+        "美股上涨；等待验证。",
+        "美股上涨—继续观察。",
+        "美股上涨🙂",
+        "美股上涨99%。",
+        "美股上涨，\n\n分段。",
+        '美股上涨"很好"',
+    ],
+)
 def test_bad_editorial_output(evidence, analysis, editor_output, bad_text):
     brief = make_brief(evidence, analysis, editor_output)
     brief["paragraphs"][0]["text"] = bad_text
@@ -44,3 +54,20 @@ def test_wrong_paragraph_count(evidence, analysis, editor_output):
     editor_output["paragraphs"].pop()
     with pytest.raises(ValueError):
         make_brief(evidence, analysis, editor_output)
+
+
+@pytest.mark.parametrize(
+    "text", ["盈利增长12%。", "盈利增长6%。", "盈利增长2%。", "盈利增长2026%。"]
+)
+def test_dates_and_horizons_do_not_allow_unrelated_numbers(evidence, analysis, editor_output, text):
+    brief = make_brief(evidence, analysis, editor_output)
+    brief["paragraphs"][0]["text"] = text
+    brief["brief_text"] = "\n\n".join(p["text"] for p in brief["paragraphs"])
+    assert not validate_draft(evidence, analysis, brief)["evidence_links_passed"]
+
+
+def test_exact_report_date_and_horizon_are_contextual(evidence, analysis, editor_output):
+    brief = make_brief(evidence, analysis, editor_output)
+    brief["paragraphs"][0]["text"] = "10月2日，标普上涨0.73%，未来6至12个月仍需观察。"
+    brief["brief_text"] = "\n\n".join(p["text"] for p in brief["paragraphs"])
+    assert validate_draft(evidence, analysis, brief)["evidence_links_passed"]

@@ -20,12 +20,26 @@ def test_stage_process_integrity(tmp_path, mode, editor_output):
         "if mode=='timeout': time.sleep(10)\n"
         "if mode=='exit': output.write_text('{}'); sys.exit(2)\n"
         "if mode!='missing': output.write_text("
-        + repr("broken" if mode == "badjson" else "{}" if mode == "badshape" else json.dumps(editor_output))
-        + ",encoding='utf-8')\n", encoding="utf-8")
+        + repr(
+            "broken"
+            if mode == "badjson"
+            else "{}"
+            if mode == "badshape"
+            else json.dumps(editor_output)
+        )
+        + ",encoding='utf-8')\n",
+        encoding="utf-8",
+    )
     output = tmp_path / "result.json"
-    kwargs = dict(prompt="研究材料", schema=schema_path("editor"), output=output, model=None,
-                  timeout_seconds=0.2 if mode == "timeout" else 5, cwd=tmp_path,
-                  command_prefix=[sys.executable, str(script)])
+    kwargs = dict(
+        prompt="研究材料",
+        schema=schema_path("editor"),
+        output=output,
+        model=None,
+        timeout_seconds=0.2 if mode == "timeout" else 5,
+        cwd=tmp_path,
+        command_prefix=[sys.executable, str(script)],
+    )
     if mode == "ok":
         assert execute_stage(**kwargs) == editor_output
         assert output.exists()
@@ -33,7 +47,24 @@ def test_stage_process_integrity(tmp_path, mode, editor_output):
         with pytest.raises((ValueError, RuntimeError, TimeoutError)):
             execute_stage(**kwargs)
         assert not output.exists()
-        assert output.with_suffix('.attempt-1.events.jsonl').exists()
+        assert list(tmp_path.glob("result.*attempt-1.events.jsonl"))
+
+
+def test_failed_retries_preserve_prior_logs(tmp_path):
+    script = tmp_path / "exit.py"
+    script.write_text('import sys\nsys.stdin.buffer.read()\nprint("attempt")\nsys.exit(2)\n')
+    for _ in range(2):
+        with pytest.raises(RuntimeError):
+            execute_stage(
+                "prompt",
+                schema_path("editor"),
+                tmp_path / "result.json",
+                None,
+                5,
+                tmp_path,
+                command_prefix=[sys.executable, str(script)],
+            )
+    assert len(list(tmp_path.glob("result.*attempt-1.events.jsonl"))) == 2
 
 
 def test_refuse_overwrite(tmp_path):
