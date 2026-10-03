@@ -27,7 +27,7 @@ def analysis(evidence):
 @pytest.fixture
 def editor_output(analysis):
     return {"headline": "合成市场播报", "paragraphs": [
-        {"text": "合成市场当日出现上涨，后续变化仍需观察。", "claim_ids": [c["id"]]}
+        {"text": "合成市场当日出现上涨，相关预期和后续变化仍需观察。", "claim_ids": [c["id"]]}
         for c in analysis["claims"]
     ]}
 
