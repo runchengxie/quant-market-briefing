@@ -15,7 +15,7 @@ def test_stage_process_integrity(tmp_path, mode, editor_output):
         "from pathlib import Path\n"
         f"mode={mode!r}\n"
         "output=Path(sys.argv[sys.argv.index('--output-last-message')+1])\n"
-        "prompt=sys.stdin.read()\n"
+        "prompt=sys.stdin.buffer.read().decode('utf-8')\n"
         "assert '研究' in prompt\n"
         "if mode=='timeout': time.sleep(10)\n"
         "if mode=='exit': output.write_text('{}'); sys.exit(2)\n"
@@ -33,6 +33,7 @@ def test_stage_process_integrity(tmp_path, mode, editor_output):
         with pytest.raises((ValueError, RuntimeError, TimeoutError)):
             execute_stage(**kwargs)
         assert not output.exists()
+        assert output.with_suffix('.attempt-1.events.jsonl').exists()
 
 
 def test_refuse_overwrite(tmp_path):
