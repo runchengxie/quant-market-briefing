@@ -37,6 +37,8 @@ def test_pipeline_with_fake_model(tmp_path, evidence, analysis, editor_output, m
     args = ["run", "--date", "2026-10-02", "--evidence", str(frozen), "--data-root", str(root)]
     assert main(args, command_prefix=command_prefix) == 0
     first = root / "2026-10-02" / "r0001"
+    request = json.loads((first / "request.json").read_text())
+    assert request["evidence_cutoff"] == evidence["evidence_cutoff"]
     brief = json.loads((first / "briefing.json").read_text(encoding="utf-8"))
     assert brief["status"] == "validated_draft"
     assert not (first / "bundle").exists()

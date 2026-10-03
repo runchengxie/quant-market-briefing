@@ -116,7 +116,10 @@ def _generate(args, command_prefix, now: datetime) -> int:
             run_dir / "request.json",
             {
                 "market_date": session["market_date"],
-                "evidence_cutoff": now.isoformat(),
+                "requested_at": now.isoformat(),
+                "evidence_cutoff": now.isoformat()
+                if args.command == "research"
+                else evidence["evidence_cutoff"],
                 "input_mode": "web_research" if args.command == "research" else "frozen_evidence",
                 "resource_hashes": resource_hashes(),
                 "analyst_model": config["analyst_model"],
