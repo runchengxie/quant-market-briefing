@@ -13,6 +13,13 @@ def test_generation_subset_preserves_local_unique_constraint():
     assert original["uniqueItems"] is True
 
 
+def test_generation_subset_preserves_local_uri_validation():
+    original = {"type": "string", "format": "uri", "pattern": "^https://"}
+    assert "format" not in generation_schema(original)
+    assert generation_schema(original)["pattern"] == "^https://"
+    assert original["format"] == "uri"
+
+
 @pytest.mark.parametrize("mode", ["ok", "exit", "timeout", "badjson", "missing", "badshape"])
 def test_stage_process_integrity(tmp_path, mode, editor_output):
     script = tmp_path / "fake.py"

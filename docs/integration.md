@@ -36,3 +36,10 @@ Deduplicate delivery using product + market_date + revision. Producer retries ar
 Mechanical numeric checks compare exact digit tokens against linked evidence values/reference periods. They do not prove correct units, signs, time interpretation, Chinese-number wording or causal reasoning. Rounding/scaling is intentionally unsupported in this release. All such meaning needs independent review.
 
 The exchange calendar is library-based, not a live exchange-closure feed. Emergency closures require operator/calendar updates. Stage caching and automatically repaired prose are intentionally absent from v1; failures retain diagnostics and explicit reruns create fresh revisions.
+# Live research input
+
+`market-briefing research --date latest` can produce evidence directly through Codex live web search. A quant-intel-platform evidence exporter is optional for this mode. The producer still needs the intel consumer adapter for rendering/delivery, and deployment owns schedules.
+
+The model returns `research.v1.json` with sources, observations and analysis. Python supplies the selected session, close, cutoff and collection metadata, validates both nested contracts and freezes the result before editing. Research sources are model-checked observations, not independently approved publication evidence.
+
+The evidence unit enum additionally accepts percent for levels/percentage returns and basis_points for basis-point changes. Legacy percentage_points remains valid for differences between percentages. A text observation can retain exact financial units and periods without conversion.

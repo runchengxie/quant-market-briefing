@@ -15,18 +15,24 @@ from .calendar import select_session
 from .contracts import aware_time, load_document
 from .editor import edit
 from .publication import build_bundle
+from .research import research
 from .review import file_hash
 from .storage import allocate_revision, assert_external_path, date_lock, write_atomic
 from .validate import validate_draft
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(description="Frozen-evidence U.S. market briefing producer")
+    root = argparse.ArgumentParser(
+        description="Web-research and frozen-evidence U.S. market briefing producer"
+    )
     commands = root.add_subparsers(dest="command", required=True)
-    for name in ["run", "analyze"]:
+    for name in ["run", "analyze", "research"]:
         command = commands.add_parser(name)
-        command.add_argument("--date", default="today", help="ISO session date, or today")
-        command.add_argument("--evidence", type=Path, required=True)
+        command.add_argument(
+            "--date", default="today", help="ISO session date, today, or latest completed session"
+        )
+        if name != "research":
+            command.add_argument("--evidence", type=Path, required=True)
         command.add_argument(
             "--data-root", type=Path, default=Path.home() / "data" / "quant-market-briefing"
         )
@@ -92,25 +98,49 @@ def _generate(args, command_prefix, now: datetime) -> int:
     if session["status"] == "skipped":
         _print(session)
         return 0
-    evidence = load_document(args.evidence, "evidence")
-    if evidence["market_date"] != session["market_date"]:
-        raise ValueError("Evidence does not match selected session")
-    if aware_time(evidence["scheduled_close"]) != aware_time(session["scheduled_close"]):
-        raise ValueError("Evidence close does not match exchange calendar")
-    if aware_time(evidence["collected_at"]) > now:
-        raise ValueError("Evidence collection timestamp is in the future")
+    evidence = None
+    if args.command != "research":
+        evidence = load_document(args.evidence, "evidence")
+        if evidence["market_date"] != session["market_date"]:
+            raise ValueError("Evidence does not match selected session")
+        if aware_time(evidence["scheduled_close"]) != aware_time(session["scheduled_close"]):
+            raise ValueError("Evidence close does not match exchange calendar")
+        if aware_time(evidence["collected_at"]) > now:
+            raise ValueError("Evidence collection timestamp is in the future")
     if args.timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
     with date_lock(args.data_root, session["market_date"]):
         run_dir, revision = allocate_revision(args.data_root, session["market_date"])
         config = _config(args, run_dir, revision, session["market_date"], command_prefix)
-        write_atomic(run_dir / "evidence.json", evidence)
+        write_atomic(
+            run_dir / "request.json",
+            {
+                "market_date": session["market_date"],
+                "evidence_cutoff": now.isoformat(),
+                "input_mode": "web_research" if args.command == "research" else "frozen_evidence",
+                "resource_hashes": resource_hashes(),
+                "analyst_model": config["analyst_model"],
+                "editor_model": config["editor_model"],
+            },
+        )
+        try:
+            if args.command == "research":
+                evidence, analysis = research(session, now, config)
+            else:
+                write_atomic(run_dir / "evidence.json", evidence)
+                analysis = analyze(evidence, config)
+            if args.command == "research":
+                write_atomic(run_dir / "evidence.json", evidence)
+        except (ValueError, RuntimeError, OSError) as exc:
+            write_atomic(run_dir / "failure.json", {"status": "failed", "error": str(exc)})
+            raise
         fingerprint = {
             "schema_version": "market.run.v1",
             "run_id": config["run_id"],
             "revision": revision,
             "market_date": session["market_date"],
             "replay": session["replay"],
+            "input_mode": "web_research" if args.command == "research" else "frozen_evidence",
             "evidence_sha256": file_hash(run_dir / "evidence.json"),
             "analyst_model": config["analyst_model"],
             "editor_model": config["editor_model"],
@@ -118,7 +148,6 @@ def _generate(args, command_prefix, now: datetime) -> int:
         }
         write_atomic(run_dir / "run.json", fingerprint)
         try:
-            analysis = analyze(evidence, config)
             write_atomic(run_dir / "analysis.json", analysis)
             if args.command == "analyze":
                 _print({"status": "analysis_ready", "run_dir": str(run_dir)})
@@ -168,7 +197,7 @@ def main(
 ) -> int:
     args = parser().parse_args(argv)
     try:
-        if args.command in {"run", "analyze"}:
+        if args.command in {"run", "analyze", "research"}:
             return _generate(args, command_prefix, now or datetime.now(UTC))
         return _existing(args, command_prefix)
     except (ValueError, RuntimeError, OSError, Timeout) as exc:

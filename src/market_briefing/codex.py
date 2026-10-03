@@ -14,7 +14,11 @@ from jsonschema import Draft202012Validator, FormatChecker
 def generation_schema(value):
     """Adapt the provider subset while retaining full local validation."""
     if isinstance(value, dict):
-        return {key: generation_schema(item) for key, item in value.items() if key != "uniqueItems"}
+        return {
+            key: generation_schema(item)
+            for key, item in value.items()
+            if key != "uniqueItems" and not (key == "format" and item == "uri")
+        }
     if isinstance(value, list):
         return [generation_schema(item) for item in value]
     return value
@@ -29,7 +33,13 @@ def execute_stage(
     cwd: Path,
     *,
     command_prefix: list[str] | None = None,
+    web_search: str = "disabled",
+    require_search: bool = False,
 ) -> dict:
+    if web_search not in {"disabled", "live"}:
+        raise ValueError("web_search must be disabled or live")
+    if require_search and web_search != "live":
+        raise ValueError("Required search needs live web_search")
     if output.exists():
         raise FileExistsError(output)
     if timeout_seconds <= 0:
@@ -47,6 +57,8 @@ def execute_stage(
         "--sandbox",
         "read-only",
         "--ignore-user-config",
+        "--config",
+        f'web_search="{web_search}"',
         "--json",
         "--skip-git-repo-check",
         "--output-schema",
@@ -93,6 +105,18 @@ def execute_stage(
                     f"Codex stage failed with exit code {process.returncode}; see {stderr_path}"
                 )
             break
+        if require_search:
+            events = [
+                json.loads(line)
+                for line in events_path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            if not any(
+                event.get("type") == "item.completed"
+                and event.get("item", {}).get("type") == "web_search"
+                for event in events
+            ):
+                raise ValueError("Research completed without a recorded web search")
         if not raw.is_file():
             raise ValueError("Codex produced no final output")
         try:

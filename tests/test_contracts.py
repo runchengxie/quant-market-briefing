@@ -17,7 +17,7 @@ def test_reject_invalid_evidence(evidence, case):
     elif case == "timestamp":
         evidence["collected_at"] = "2026-10-02T22:00:00"
     elif case == "unit":
-        evidence["observations"][0]["unit"] = "percent"
+        evidence["observations"][0]["unit"] = "unknown_unit"
     elif case == "duplicate":
         evidence["observations"][1]["id"] = evidence["observations"][0]["id"]
     elif case == "source":

@@ -1,5 +1,9 @@
 # Integration exploration
 
+## Live research extension
+
+The producer now includes an optional two-call web research/editor workflow and preserves the original Chinese research framework. Frozen-input workflows remain available. Live research retains sources, observations, structured analysis and search event logs outside the repository. The original need for an intel context exporter now applies only to the alternative frozen-input integration.
+
 ## Current evidence
 
 The first live Codex experiment completed both stages using synthetic evidence. It produced five Chinese paragraphs, but the local evidence checks kept the result in draft status. Number tokens in instrument names/reference periods and unrelated estimate claims exposed alignment issues between editor claim references and the validator. This experiment demonstrates execution, not publication quality or real market accuracy.
