@@ -102,7 +102,9 @@
               "usd",
               "ratio",
               "index_level",
-              "text"
+              "text",
+              "percent",
+              "basis_points"
             ],
             "type": "string"
           },

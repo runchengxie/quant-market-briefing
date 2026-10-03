@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "publisher",
+          "url",
+          "published_at"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": [
+              "number",
+              "string",
+              "null"
+            ]
+          },
+          "unit": {
+            "enum": [
+              "percentage_points",
+              "count",
+              "usd",
+              "ratio",
+              "index_level",
+              "text",
+              "percent",
+              "basis_points"
+            ],
+            "type": "string"
+          },
+          "reference_period": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classification": {
+            "enum": [
+              "actual",
+              "estimate"
+            ],
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verification": {
+            "enum": [
+              "verified",
+              "unverified"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "metric",
+          "value",
+          "unit",
+          "reference_period",
+          "classification",
+          "source_id",
+          "observed_at",
+          "verification"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "analysis": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "const": "market.analysis.v1",
+          "type": "string"
+        },
+        "claims": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "fact",
+                  "inference"
+                ],
+                "type": "string"
+              },
+              "evidence_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "temporal_type": {
+                "enum": [
+                  "actual",
+                  "estimate",
+                  "mixed"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text",
+              "kind",
+              "evidence_ids",
+              "temporal_type"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "thesis": {
+          "type": "object",
+          "properties": {
+            "stance": {
+              "enum": [
+                "constructive",
+                "neutral",
+                "cautious"
+              ],
+              "type": "string"
+            },
+            "confidence": {
+              "enum": [
+                "high",
+                "medium",
+                "low"
+              ],
+              "type": "string"
+            },
+            "horizon": {
+              "const": "6-12m",
+              "type": "string"
+            }
+          },
+          "required": [
+            "stance",
+            "confidence",
+            "horizon"
+          ],
+          "additionalProperties": false
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "topic": {
+                "enum": [
+                  "fundamentals",
+                  "support",
+                  "risks",
+                  "sector_macro",
+                  "catalysts",
+                  "conclusion"
+                ],
+                "type": "string"
+              },
+              "claim_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "commentary": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "topic",
+              "claim_ids",
+              "commentary"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 6
+        },
+        "missing_inputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "invalidation_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "schema_version",
+        "claims",
+        "thesis",
+        "sections",
+        "missing_inputs",
+        "invalidation_conditions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "sources",
+    "observations",
+    "analysis"
+  ],
+  "additionalProperties": false
+}

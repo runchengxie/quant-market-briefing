@@ -1,6 +1,7 @@
 """Conservative mechanical checks; never a semantic/source audit."""
 
 import re
+from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from .analysis import validate_analysis
@@ -33,6 +34,16 @@ def _claim_numbers(text: str, market_date: str, observations: list[dict]) -> set
     text = re.sub(rf"(?<!\d)(?:{year}年)?0?{month}月0?{day}日", "", text)
     for item in observations:
         text = text.replace(item["reference_period"], "")
+        for literal in re.findall(r"\d{4}-\d{2}-\d{2}", item["reference_period"]):
+            try:
+                period_date = date.fromisoformat(literal)
+            except ValueError:
+                continue
+            text = re.sub(
+                rf"(?<!\d)(?:{period_date.year}年)?0?{period_date.month}月0?{period_date.day}日",
+                "",
+                text,
+            )
     return _numbers(text)
 
 

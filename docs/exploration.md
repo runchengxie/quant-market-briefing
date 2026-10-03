@@ -1,5 +1,13 @@
 # Integration exploration
 
+## Live research extension
+
+The producer now includes an optional two-call web research/editor workflow and preserves the original Chinese research framework. Frozen-input workflows remain available. Live research retains sources, observations, structured analysis and search event logs outside the repository. The original need for an intel context exporter now applies only to the alternative frozen-input integration.
+
+A real trial for the 2026-10-02 session completed research and editing with eight completed search events, eleven source records, twenty-one observations and sixteen claims. It generated five Chinese paragraphs. The trial first exposed an unsupported URI format in the provider schema, now removed only from the generation schema while retained locally. A later numeric check treated a Chinese translation of a linked reference date as a new number; contextual date handling now passes, while the same bare number used as a financial value remains rejected.
+
+Revalidation of this retained draft passed structure, evidence-link and editorial checks under the corrected validator. Its original immutable briefing still contains the earlier draft findings, and no source approval or delivery was performed. Remaining warnings include necessary English identifiers and length outside the soft target. Final offline checks: 82 tests, Ruff and distribution builds.
+
 ## Current evidence
 
 The first live Codex experiment completed both stages using synthetic evidence. It produced five Chinese paragraphs, but the local evidence checks kept the result in draft status. Number tokens in instrument names/reference periods and unrelated estimate claims exposed alignment issues between editor claim references and the validator. This experiment demonstrates execution, not publication quality or real market accuracy.

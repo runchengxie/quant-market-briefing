@@ -10,7 +10,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 
 def schema_path(kind: str) -> Path:
-    if kind not in {"evidence", "analysis", "editor", "briefing", "review"}:
+    if kind not in {"evidence", "analysis", "editor", "briefing", "review", "research"}:
         raise ValueError(f"Unknown document kind: {kind}")
     return Path(str(files("market_briefing").joinpath("resources", "schemas", f"{kind}.v1.json")))
 

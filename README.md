@@ -1,6 +1,6 @@
 # quant-market-briefing
 
-A small, independently runnable U.S. post-close research producer. It reads frozen evidence, runs a fundamental/macro analyst, then a separate Chinese editor. The result is five plain Chinese paragraphs, machine-readable claims and source provenance.
+A small, independently runnable U.S. post-close research producer. It can research the live web or read frozen evidence, then run a separate Chinese editor. The result is five plain Chinese paragraphs, machine-readable claims and source provenance.
 
 Current release: local generation and reviewed file bundles. The intel context exporter, briefing-specific consumer adapter and production scheduler are follow-up integration work.
 
@@ -11,6 +11,7 @@ Requires Python 3.11–3.13, uv and a separately authenticated Codex CLI.
 ```sh
 uv sync --locked --group dev
 uv run market-briefing --help
+uv run market-briefing research --date latest --data-root /external/briefings
 uv run market-briefing run --date YYYY-MM-DD --evidence /external/evidence.json --data-root /external/briefings
 ```
 
@@ -22,6 +23,7 @@ Run outputs default to ~/data/quant-market-briefing. Each explicit rerun creates
 
 | Command | Input | Output |
 | --- | --- | --- |
+| research | Session date and live web search | Frozen evidence, analysis and five-paragraph draft |
 | analyze | Evidence file and session date | New revision with evidence and analysis |
 | edit | --run-dir containing analysis | Five-paragraph draft |
 | validate | --run-dir containing draft | Mechanical findings and exit status |
@@ -48,3 +50,11 @@ uv build --out-dir /external/build
 ```
 
 Tests use synthetic evidence and fake model executables, with no paid model, market-data or messaging calls.
+
+## Research templates
+
+The [original Chinese framework](src/market_briefing/resources/prompts/research-framework.zh-CN.md) is preserved as supplied. The [researcher template](src/market_briefing/resources/prompts/researcher.zh-CN.md) adds search, provenance and JSON rules. Both are packaged resources, alongside the editor template. Runtime options belong in the CLI/configuration; explanatory documents belong in docs.
+
+The research command explicitly uses `web_search="live"` and requires a completed search event. Frozen analysis and editing explicitly disable search. Research and editing are two model calls. Search completion does not establish that every source supports every claim; publication still requires the separate hash-bound source review.
+
+`--date today` is the scheduler default and skips nontrading days. `--date latest` selects the most recent completed session for manual use. The evidence cutoff is the research start time, not the historical close. A historical run therefore represents research as of that cutoff, not a reconstructed close-time vintage. Source publication timestamps may be null when the page gives only a date. Missing or inaccessible financial data stays in missing_inputs.
