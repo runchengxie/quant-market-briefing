@@ -71,3 +71,15 @@ def test_exact_report_date_and_horizon_are_contextual(evidence, analysis, editor
     brief["paragraphs"][0]["text"] = "10月2日，标普上涨0.73%，未来6至12个月仍需观察。"
     brief["brief_text"] = "\n\n".join(p["text"] for p in brief["paragraphs"])
     assert validate_draft(evidence, analysis, brief)["evidence_links_passed"]
+
+
+def test_reference_date_translation_is_contextual(evidence, analysis, editor_output):
+    from market_briefing.editor import assemble_briefing
+
+    evidence["observations"][0]["reference_period"] = "2026-09-30收盘"
+    editor_output["paragraphs"][0]["text"] = "9月30日的合成指数上涨0.73%。"
+    brief = assemble_briefing(editor_output, evidence, analysis, "test", 1)
+    assert "Paragraph 1 introduces unsupported numbers" not in brief["quality"]["errors"]
+    editor_output["paragraphs"][0]["text"] = "合成指数上涨30%。"
+    brief = assemble_briefing(editor_output, evidence, analysis, "test", 1)
+    assert "Paragraph 1 introduces unsupported numbers" in brief["quality"]["errors"]
