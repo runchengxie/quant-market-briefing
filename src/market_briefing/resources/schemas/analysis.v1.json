@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.analysis.v1"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "fact",
+              "inference"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "temporal_type": {
+            "enum": [
+              "actual",
+              "estimate",
+              "mixed"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "kind",
+          "evidence_ids",
+          "temporal_type"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "thesis": {
+      "type": "object",
+      "properties": {
+        "stance": {
+          "enum": [
+            "constructive",
+            "neutral",
+            "cautious"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "horizon": {
+          "const": "6-12m"
+        }
+      },
+      "required": [
+        "stance",
+        "confidence",
+        "horizon"
+      ],
+      "additionalProperties": false
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "enum": [
+              "fundamentals",
+              "support",
+              "risks",
+              "sector_macro",
+              "catalysts",
+              "conclusion"
+            ]
+          },
+          "claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "commentary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "topic",
+          "claim_ids",
+          "commentary"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 6
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "invalidation_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "claims",
+    "thesis",
+    "sections",
+    "missing_inputs",
+    "invalidation_conditions"
+  ],
+  "additionalProperties": false
+}
