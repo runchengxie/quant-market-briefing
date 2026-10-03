@@ -42,3 +42,5 @@ def test_editor_preserves_direction_and_invalidation():
         "不能自行提高信心或替分析师选方向",
     ):
         assert requirement in text
+    assert "长期时间跨度写成未来6至12个月" in text
+    assert "每段内部不换行。时间跨度写成未来6至12个月" not in text
