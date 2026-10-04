@@ -1,5 +1,7 @@
 # quant-market-briefing
 
+[![CI](https://github.com/runchengxie/quant-market-briefing/actions/workflows/ci.yml/badge.svg)](https://github.com/runchengxie/quant-market-briefing/actions/workflows/ci.yml)
+
 A small, independently runnable U.S. post-close research producer. It can research the live web or read frozen evidence, then run a separate Chinese editor. The result is five plain Chinese paragraphs, machine-readable claims and source provenance.
 
 Current release: local generation and reviewed file bundles. The intel context exporter, briefing-specific consumer adapter and production scheduler are follow-up integration work.
@@ -16,6 +18,8 @@ uv run market-briefing run --date YYYY-MM-DD --evidence /external/evidence.json 
 ```
 
 Models and effort are explicit. Research defaults to gpt-6-astra/xhigh, challenge to gpt-6-astra/high and editing to gpt-6.1-sol/medium. Override with --analyst-model/--analyst-effort, --reviewer-model/--reviewer-effort and --editor-model/--editor-effort. User config is ignored and authentication is inherited. Unsupported account/model settings fail rather than silently selecting an alternative. Verify access as the actual service user before deployment.
+
+These are provisional settings for a quality-focused deep preview, not an experimentally established optimum. Research has the broadest task, challenge concentrates on an existing draft's gaps, and editing works only from frozen inputs. The same model in two separate invocations can still share blind spots. Higher effort and more searches do not establish forecast accuracy. Compare configurations using the same frozen inputs and multiple sessions before choosing a daily operating budget.
 
 The default --research-depth deep runs research, a separate live-search challenge and editing. --research-depth standard omits the challenge for a two-call comparison. Frozen-input run/analyze retain their offline research behavior. Each model stage has a default 1,200-second timeout, so the full deep workflow can take longer; --timeout-seconds overrides this per-stage limit.
 
@@ -52,6 +56,8 @@ uv build --out-dir /external/build
 ```
 
 Tests use synthetic evidence and fake model executables, with no paid model, market-data or messaging calls.
+
+GitHub Actions runs the offline suite, Ruff lint/format checks and wheel/source builds on Ubuntu and Windows with Python 3.11, 3.12 and 3.13. It triggers for pull requests, pushes to main and manual dispatch. Dependencies are installed from the lockfile; temporary test and build outputs stay outside the source tree. CI does not install Codex, use model credentials, generate live reports or deliver notifications. Its checks establish software behavior, not research quality or source approval.
 
 ## Research templates
 
