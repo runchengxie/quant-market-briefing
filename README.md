@@ -15,7 +15,9 @@ uv run market-briefing research --date latest --data-root /external/briefings
 uv run market-briefing run --date YYYY-MM-DD --evidence /external/evidence.json --data-root /external/briefings
 ```
 
-Stage models can be set independently with --analyst-model and --editor-model. If omitted, the Codex executable's built-in default applies; user config is ignored and authentication is inherited. Verify authentication and model access as the actual scheduled service user before deployment.
+Models and effort are explicit. Research defaults to gpt-6-astra/xhigh, challenge to gpt-6-astra/high and editing to gpt-6.1-sol/medium. Override with --analyst-model/--analyst-effort, --reviewer-model/--reviewer-effort and --editor-model/--editor-effort. User config is ignored and authentication is inherited. Unsupported account/model settings fail rather than silently selecting an alternative. Verify access as the actual service user before deployment.
+
+The default --research-depth deep runs research, a separate live-search challenge and editing. --research-depth standard omits the challenge for a two-call comparison. Frozen-input run/analyze retain their offline research behavior. Each model stage has a default 1,200-second timeout, so the full deep workflow can take longer; --timeout-seconds overrides this per-stage limit.
 
 Run outputs default to ~/data/quant-market-briefing. Each explicit rerun creates a new immutable revision. No command sends notifications or installs schedules.
 
@@ -57,6 +59,8 @@ The [original Chinese framework](src/market_briefing/resources/prompts/research-
 
 Research now requires separate short-term and six-to-twelve-month direction judgments, the most likely path, main drivers, counterarguments and invalidation conditions. Direction is independent of confidence. Evidence-backed inferences need not repeat a source's conclusion, but must retain linked observations and uncertainty. Missing data affects only dependent judgments; an unsupported direction remains explicitly unassessable. The editor preserves these judgments without choosing a direction or raising confidence. No bullish outcome, probability or price target is prescribed.
 
-The research command explicitly uses `web_search="live"` and requires a completed search event. Frozen analysis and editing explicitly disable search. Research and editing are two model calls. Search completion does not establish that every source supports every claim; publication still requires the separate hash-bound source review.
+Research and challenge explicitly use `web_search="live"` and each require a completed search event. Frozen analysis and editing explicitly disable search. The challenge searches material gaps, comparable historical changes and counterevidence, then returns a complete reconciled evidence/analysis document. research.initial.json preserves the initial result, challenge.candidate.json the revision, and final evidence.json/analysis.json the editor inputs. Search completion does not establish that every source supports every claim; publication still requires the separate hash-bound source review.
+
+Each invocation records requested model/effort, CLI version, prompt/schema hashes, search mode and start time, with a separate completion record for successful stages. These records describe explicit CLI settings; the JSONL protocol does not expose the backend-served model, so they do not claim independent attestation of that model. request.json and run.json retain stage settings, and resumed editing inherits its original model/effort.
 
 `--date today` is the scheduler default and skips nontrading days. `--date latest` selects the most recent completed session for manual use. The evidence cutoff is the research start time, not the historical close. A historical run therefore represents research as of that cutoff, not a reconstructed close-time vintage. Source publication timestamps may be null when the page gives only a date. Missing or inaccessible financial data stays in missing_inputs.

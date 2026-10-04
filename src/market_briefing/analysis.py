@@ -41,6 +41,7 @@ def analyze(evidence: dict, config: dict) -> dict:
         config.get("timeout_seconds", 600),
         Path(config["run_dir"]),
         command_prefix=config.get("command_prefix"),
+        reasoning_effort=config.get("analyst_effort"),
     )
     validate_analysis(result, evidence)
     return result

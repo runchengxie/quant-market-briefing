@@ -36,12 +36,24 @@ def parser() -> argparse.ArgumentParser:
         command.add_argument(
             "--data-root", type=Path, default=Path.home() / "data" / "quant-market-briefing"
         )
-        command.add_argument("--analyst-model")
-        command.add_argument("--editor-model")
-        command.add_argument("--timeout-seconds", type=float, default=600)
+        command.add_argument("--analyst-model", default="gpt-6-astra")
+        command.add_argument(
+            "--analyst-effort", choices=["low", "medium", "high", "xhigh", "max"], default="xhigh"
+        )
+        command.add_argument("--reviewer-model", default="gpt-6-astra")
+        command.add_argument(
+            "--reviewer-effort", choices=["low", "medium", "high", "xhigh", "max"], default="high"
+        )
+        command.add_argument("--editor-model", default="gpt-6.1-sol")
+        command.add_argument(
+            "--editor-effort", choices=["low", "medium", "high", "xhigh", "max"], default="medium"
+        )
+        command.add_argument("--research-depth", choices=["standard", "deep"], default="deep")
+        command.add_argument("--timeout-seconds", type=float, default=1200)
     edit_command = commands.add_parser("edit")
     edit_command.add_argument("--run-dir", type=Path, required=True)
     edit_command.add_argument("--editor-model")
+    edit_command.add_argument("--editor-effort", choices=["low", "medium", "high", "xhigh", "max"])
     edit_command.add_argument("--timeout-seconds", type=float, default=600)
     validate = commands.add_parser("validate")
     validate.add_argument("--run-dir", type=Path, required=True)
@@ -73,6 +85,11 @@ def _config(args, run_dir: Path, revision: int, market_date: str, command_prefix
         "run_id": f"us-{market_date}-r{revision:04d}",
         "analyst_model": getattr(args, "analyst_model", None),
         "editor_model": getattr(args, "editor_model", None),
+        "analyst_effort": getattr(args, "analyst_effort", None),
+        "reviewer_model": getattr(args, "reviewer_model", None),
+        "reviewer_effort": getattr(args, "reviewer_effort", None),
+        "editor_effort": getattr(args, "editor_effort", None),
+        "research_depth": getattr(args, "research_depth", "standard"),
         "timeout_seconds": args.timeout_seconds,
         "command_prefix": command_prefix,
     }
@@ -124,6 +141,16 @@ def _generate(args, command_prefix, now: datetime) -> int:
                 "resource_hashes": resource_hashes(),
                 "analyst_model": config["analyst_model"],
                 "editor_model": config["editor_model"],
+                **{
+                    k: config[k]
+                    for k in (
+                        "analyst_effort",
+                        "reviewer_model",
+                        "reviewer_effort",
+                        "editor_effort",
+                        "research_depth",
+                    )
+                },
             },
         )
         try:
@@ -147,6 +174,16 @@ def _generate(args, command_prefix, now: datetime) -> int:
             "evidence_sha256": file_hash(run_dir / "evidence.json"),
             "analyst_model": config["analyst_model"],
             "editor_model": config["editor_model"],
+            **{
+                k: config[k]
+                for k in (
+                    "analyst_effort",
+                    "reviewer_model",
+                    "reviewer_effort",
+                    "editor_effort",
+                    "research_depth",
+                )
+            },
             "resource_hashes": resource_hashes(),
         }
         write_atomic(run_dir / "run.json", fingerprint)
@@ -176,6 +213,10 @@ def _existing(args, command_prefix) -> int:
             if args.editor_model is not None and args.editor_model != saved_model:
                 raise ValueError("Changed editor model requires a new run revision")
             args.editor_model = saved_model
+            saved_effort = metadata.get("editor_effort")
+            if args.editor_effort is not None and args.editor_effort != saved_effort:
+                raise ValueError("Changed editor effort requires a new run revision")
+            args.editor_effort = saved_effort
             config = _config(
                 args, run_dir, metadata["revision"], evidence["market_date"], command_prefix
             )
