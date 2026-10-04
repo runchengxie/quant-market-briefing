@@ -84,15 +84,14 @@ def test_challenge_cannot_reassign_existing_observation_id(
         return result
 
     monkeypatch.setattr(module, "execute_stage", stage)
-    with pytest.raises(ValueError, match="reassign"):
-        module.research(
-            {
-                "market_date": evidence["market_date"],
-                "scheduled_close": evidence["scheduled_close"],
-            },
-            datetime(2026, 10, 3, 8, tzinfo=UTC),
-            {"run_dir": tmp_path, "research_depth": "deep"},
-        )
+    returned, _ = module.research(
+        {"market_date": evidence["market_date"], "scheduled_close": evidence["scheduled_close"]},
+        datetime(2026, 10, 3, 8, tzinfo=UTC),
+        {"run_dir": tmp_path, "research_depth": "deep"},
+    )
+    assert returned["observations"][0]["id"] != original["observations"][0]["id"]
+    assert returned["observations"][0]["value"] == 999
+    assert (tmp_path / "challenge.reconciliation.json").exists()
 
 
 def test_revision_rejects_source_reassignment(evidence, analysis):
@@ -123,3 +122,59 @@ def test_revision_allows_correction_with_new_identifier(evidence, analysis):
     correction["value"] = 999
     revised["observations"].append(correction)
     validate_revision(initial, revised)
+
+
+def test_reconciliation_preserves_content_and_updates_references(evidence, analysis):
+    from market_briefing.research import reconcile_revision, validate_revision
+
+    initial = {
+        "sources": evidence["sources"],
+        "observations": evidence["observations"],
+        "analysis": analysis,
+    }
+    revised = copy.deepcopy(initial)
+    source_id = revised["sources"][0]["id"]
+    observation_id = revised["observations"][0]["id"]
+    revised["sources"][0]["title"] = "Revised title"
+    revised["observations"][0]["value"] = 999
+    before = copy.deepcopy(revised)
+    corrected, mapping = reconcile_revision(initial, revised)
+    assert revised == before
+    assert corrected["sources"][0]["title"] == "Revised title"
+    assert corrected["observations"][0]["value"] == 999
+    assert corrected["sources"][0]["id"] != source_id
+    assert corrected["observations"][0]["id"] != observation_id
+    assert corrected["observations"][0]["source_id"] == corrected["sources"][0]["id"]
+    for old, new in zip(before["analysis"]["claims"], corrected["analysis"]["claims"], strict=True):
+        assert new["evidence_ids"] == [
+            mapping["observations"].get(item, item) for item in old["evidence_ids"]
+        ]
+    validate_revision(initial, corrected)
+
+
+def test_reconciliation_no_changes_keeps_identifiers(evidence, analysis):
+    from market_briefing.research import reconcile_revision
+
+    initial = {
+        "sources": evidence["sources"],
+        "observations": evidence["observations"],
+        "analysis": analysis,
+    }
+    corrected, mapping = reconcile_revision(initial, initial)
+    assert corrected == initial
+    assert mapping == {"sources": {}, "observations": {}}
+
+
+@pytest.mark.parametrize("collection", ["sources", "observations"])
+def test_reconciliation_rejects_ambiguous_duplicates(evidence, analysis, collection):
+    from market_briefing.research import reconcile_revision
+
+    initial = {
+        "sources": evidence["sources"],
+        "observations": evidence["observations"],
+        "analysis": analysis,
+    }
+    revised = copy.deepcopy(initial)
+    revised[collection].append(copy.deepcopy(revised[collection][0]))
+    with pytest.raises(ValueError, match="Duplicate"):
+        reconcile_revision(initial, revised)

@@ -1,5 +1,6 @@
 """Live web research, with source records frozen before editing."""
 
+import copy
 import json
 from datetime import UTC, datetime
 from importlib.resources import files
@@ -27,6 +28,43 @@ def validate_revision(initial: dict, revised: dict) -> None:
         for item in revised[collection]:
             if item["id"] in originals and item != originals[item["id"]]:
                 raise ValueError(f"Challenge cannot reassign {collection} ID {item['id']}")
+
+
+def reconcile_revision(initial: dict, revised: dict) -> tuple[dict, dict]:
+    """Allocate fresh identifiers to changed records without interpreting facts."""
+    validate_document(revised, "research")
+    for document in (initial, revised):
+        for collection in ("sources", "observations"):
+            identifiers = [item["id"] for item in document[collection]]
+            if len(identifiers) != len(set(identifiers)):
+                raise ValueError(f"Duplicate {collection} identifiers cannot be reconciled")
+    result = copy.deepcopy(revised)
+    mapping = {"sources": {}, "observations": {}}
+    for collection in ("sources", "observations"):
+        originals = {item["id"]: item for item in initial[collection]}
+        used = set(originals) | {item["id"] for item in result[collection]}
+        for item in result[collection]:
+            old_id = item["id"]
+            if old_id in originals and item != originals[old_id]:
+                suffix = 1
+                new_id = f"{old_id}_revision_{suffix}"
+                while new_id in used:
+                    suffix += 1
+                    new_id = f"{old_id}_revision_{suffix}"
+                used.add(new_id)
+                mapping[collection][old_id] = new_id
+                item["id"] = new_id
+        if collection == "sources":
+            for observation in result["observations"]:
+                observation["source_id"] = mapping["sources"].get(
+                    observation["source_id"], observation["source_id"]
+                )
+    for claim in result["analysis"]["claims"]:
+        claim["evidence_ids"] = [
+            mapping["observations"].get(item, item) for item in claim["evidence_ids"]
+        ]
+    validate_revision(initial, result)
+    return result, mapping
 
 
 def research(session: dict, cutoff: datetime, config: dict) -> tuple[dict, dict]:
@@ -78,6 +116,7 @@ def research(session: dict, cutoff: datetime, config: dict) -> tuple[dict, dict]
             require_search=True,
             reasoning_effort=config.get("reviewer_effort"),
         )
-        validate_revision(initial, result)
+        result, mapping = reconcile_revision(initial, result)
+        write_atomic(Path(config["run_dir"]) / "challenge.reconciliation.json", mapping)
     context["collected_at"] = datetime.now(UTC).isoformat()
     return assemble_research(result, context)
