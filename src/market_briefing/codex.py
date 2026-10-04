@@ -56,7 +56,6 @@ def execute_stage(
     raw = output.parent / f".{output.name}.{invocation_id}.raw.json"
     schema_data = json.loads(schema.read_text(encoding="utf-8"))
     provider_schema = output.parent / f".{output.name}.{invocation_id}.schema.json"
-    provider_schema.write_text(json.dumps(generation_schema(schema_data)), encoding="utf-8")
     command = [
         *(command_prefix or ["codex"]),
         "exec",
@@ -79,28 +78,32 @@ def execute_stage(
         command.extend(["--config", f'model_reasoning_effort="{reasoning_effort}"'])
     command.append("-")
     started = time.monotonic()
-    version = (
-        "test-double"
-        if command_prefix
-        else subprocess.run(
-            ["codex", "--version"], capture_output=True, text=True, check=True, timeout=10
-        ).stdout.strip()
-    )
-    write_atomic(
-        output.with_suffix(f".{invocation_id}.invocation.json"),
-        {
-            "requested_model": model,
-            "requested_reasoning_effort": reasoning_effort,
-            "codex_version": version,
-            "web_search": web_search,
-            "started_at": datetime.now(UTC).isoformat(),
-            "timeout_seconds": timeout_seconds,
-            "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
-            "schema_sha256": hashlib.sha256(schema.read_bytes()).hexdigest(),
-            "settings_provenance": "explicit CLI arguments; backend served model is not exposed",
-        },
-    )
     try:
+        provider_schema.write_text(json.dumps(generation_schema(schema_data)), encoding="utf-8")
+        try:
+            version = (
+                "test-double"
+                if command_prefix
+                else subprocess.run(
+                    ["codex", "--version"], capture_output=True, text=True, check=True, timeout=10
+                ).stdout.strip()
+            )
+        except (subprocess.SubprocessError, OSError) as exc:
+            raise RuntimeError("Codex version probe failed") from exc
+        write_atomic(
+            output.with_suffix(f".{invocation_id}.invocation.json"),
+            {
+                "requested_model": model,
+                "requested_reasoning_effort": reasoning_effort,
+                "codex_version": version,
+                "web_search": web_search,
+                "started_at": datetime.now(UTC).isoformat(),
+                "timeout_seconds": timeout_seconds,
+                "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+                "schema_sha256": hashlib.sha256(schema.read_bytes()).hexdigest(),
+                "settings_provenance": "explicit CLI arguments; backend served model is not exposed",
+            },
+        )
         for attempt in range(3):
             kwargs = (
                 {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
@@ -163,7 +166,6 @@ def execute_stage(
             json.dumps(payload, ensure_ascii=False, allow_nan=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        os.link(raw, output)
         write_atomic(
             output.with_suffix(f".{invocation_id}.completion.json"),
             {
@@ -171,6 +173,7 @@ def execute_stage(
                 "elapsed_seconds": time.monotonic() - started,
             },
         )
+        os.link(raw, output)
         return payload
     finally:
         raw.unlink(missing_ok=True)

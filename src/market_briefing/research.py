@@ -19,6 +19,16 @@ def assemble_research(result: dict, context: dict) -> tuple[dict, dict]:
     return evidence, result["analysis"]
 
 
+def validate_revision(initial: dict, revised: dict) -> None:
+    """Retained evidence identifiers must keep their original meaning."""
+    validate_document(revised, "research")
+    for collection in ("sources", "observations"):
+        originals = {item["id"]: item for item in initial[collection]}
+        for item in revised[collection]:
+            if item["id"] in originals and item != originals[item["id"]]:
+                raise ValueError(f"Challenge cannot reassign {collection} ID {item['id']}")
+
+
 def research(session: dict, cutoff: datetime, config: dict) -> tuple[dict, dict]:
     context = {
         "schema_version": "market.evidence.v1",
@@ -49,6 +59,7 @@ def research(session: dict, cutoff: datetime, config: dict) -> tuple[dict, dict]
     )
     assemble_research(result, context)
     if config.get("research_depth", "standard") == "deep":
+        initial = result
         write_atomic(Path(config["run_dir"]) / "research.initial.json", result)
         challenge = resources.joinpath("challenger.zh-CN.md").read_text(encoding="utf-8")
         challenge += "\n\n研究规则\n" + prompt
@@ -67,5 +78,6 @@ def research(session: dict, cutoff: datetime, config: dict) -> tuple[dict, dict]
             require_search=True,
             reasoning_effort=config.get("reviewer_effort"),
         )
+        validate_revision(initial, result)
     context["collected_at"] = datetime.now(UTC).isoformat()
     return assemble_research(result, context)
