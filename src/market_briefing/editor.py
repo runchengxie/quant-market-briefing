@@ -66,5 +66,6 @@ def edit(analysis: dict, evidence: dict, config: dict) -> dict:
         config.get("timeout_seconds", 600),
         Path(config["run_dir"]),
         command_prefix=config.get("command_prefix"),
+        reasoning_effort=config.get("editor_effort"),
     )
     return assemble_briefing(output, evidence, analysis, config["run_id"], config["revision"])

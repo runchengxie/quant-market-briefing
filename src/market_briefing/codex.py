@@ -1,14 +1,18 @@
 """Noninteractive model execution with transactional output."""
 
+import hashlib
 import json
 import os
 import signal
 import subprocess
 import time
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
+
+from .storage import write_atomic
 
 
 def generation_schema(value):
@@ -35,7 +39,10 @@ def execute_stage(
     command_prefix: list[str] | None = None,
     web_search: str = "disabled",
     require_search: bool = False,
+    reasoning_effort: str | None = None,
 ) -> dict:
+    if reasoning_effort not in {None, "low", "medium", "high", "xhigh", "max"}:
+        raise ValueError("Unsupported reasoning_effort")
     if web_search not in {"disabled", "live"}:
         raise ValueError("web_search must be disabled or live")
     if require_search and web_search != "live":
@@ -68,7 +75,31 @@ def execute_stage(
     ]
     if model:
         command.extend(["--model", model])
+    if reasoning_effort:
+        command.extend(["--config", f'model_reasoning_effort="{reasoning_effort}"'])
     command.append("-")
+    started = time.monotonic()
+    version = (
+        "test-double"
+        if command_prefix
+        else subprocess.run(
+            ["codex", "--version"], capture_output=True, text=True, check=True, timeout=10
+        ).stdout.strip()
+    )
+    write_atomic(
+        output.with_suffix(f".{invocation_id}.invocation.json"),
+        {
+            "requested_model": model,
+            "requested_reasoning_effort": reasoning_effort,
+            "codex_version": version,
+            "web_search": web_search,
+            "started_at": datetime.now(UTC).isoformat(),
+            "timeout_seconds": timeout_seconds,
+            "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+            "schema_sha256": hashlib.sha256(schema.read_bytes()).hexdigest(),
+            "settings_provenance": "explicit CLI arguments; backend served model is not exposed",
+        },
+    )
     try:
         for attempt in range(3):
             kwargs = (
@@ -133,6 +164,13 @@ def execute_stage(
             encoding="utf-8",
         )
         os.link(raw, output)
+        write_atomic(
+            output.with_suffix(f".{invocation_id}.completion.json"),
+            {
+                "finished_at": datetime.now(UTC).isoformat(),
+                "elapsed_seconds": time.monotonic() - started,
+            },
+        )
         return payload
     finally:
         raw.unlink(missing_ok=True)
