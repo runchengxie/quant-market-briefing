@@ -57,7 +57,7 @@ uv build --out-dir /external/build
 
 Tests use synthetic evidence and fake model executables, with no paid model, market-data or messaging calls.
 
-GitHub Actions runs the offline suite, Ruff lint/format checks and wheel/source builds on Ubuntu and Windows with Python 3.11, 3.12 and 3.13. It triggers for pull requests, pushes to main and manual dispatch. Dependencies are installed from the lockfile; temporary test and build outputs stay outside the source tree. CI does not install Codex, use model credentials, generate live reports or deliver notifications. Its checks establish software behavior, not research quality or source approval.
+GitHub Actions runs the offline suite, Ruff lint/format checks and wheel/source builds on Ubuntu and Windows with Python 3.11, 3.12 and 3.13. It triggers for pull requests, pushes to main and manual dispatch. Runtime, development and build tooling dependencies are installed from the lockfile before installing the project; installation and packaging use that environment without build isolation. Temporary test and build outputs stay outside the source tree. CI does not install Codex, use model credentials, generate live reports or deliver notifications. Its checks establish software behavior, not research quality or source approval.
 
 ## Research templates
 

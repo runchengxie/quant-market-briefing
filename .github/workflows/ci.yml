@@ -37,8 +37,10 @@ jobs:
           version: '0.11.32'
           python-version: ${{ matrix.python-version }}
           enable-cache: true
-      - name: Install locked dependencies
-        run: uv sync --locked --group dev
+      - name: Install locked tooling and dependencies
+        run: uv sync --locked --group dev --no-install-project
+      - name: Install project with locked build tooling
+        run: uv sync --locked --group dev --no-build-isolation
       - name: Check lint
         run: uv run --no-sync ruff check .
       - name: Check formatting
@@ -46,4 +48,4 @@ jobs:
       - name: Run offline tests
         run: uv run --no-sync pytest --basetemp "${{ runner.temp }}/market-briefing-tests"
       - name: Build wheel and source distribution
-        run: uv build --out-dir "${{ runner.temp }}/market-briefing-dist"
+        run: uv build --no-build-isolation --out-dir "${{ runner.temp }}/market-briefing-dist"
