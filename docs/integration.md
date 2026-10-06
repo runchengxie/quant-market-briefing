@@ -23,6 +23,10 @@ No import from daily_messenger or another owner repository is used. Existing int
 
 ## Context export
 
+`research --context` now accepts existing intel web-research v1.0 JSON as frozen,
+unreviewed search leads. It does not convert candidates into approved evidence.
+See [context import](context-import.md) for checks, provenance and follow-up scope.
+
 A follow-up intel exporter may assemble existing authoritative market/report artifacts into market.evidence.v1. It must preserve observation dates, estimate periods, source identities, missing data and audit state. It must not claim ownership of market series merely because it exports a report context.
 
 ## Deployment

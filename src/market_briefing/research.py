@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .analysis import validate_analysis
 from .codex import execute_stage
+from .context import context_prompt
 from .contracts import schema_path, validate_document
 from .storage import write_atomic
 
@@ -83,6 +84,8 @@ def research(session: dict, cutoff: datetime, config: dict) -> tuple[dict, dict]
         encoding="utf-8"
     )
     prompt += "\n\n任务上下文\n" + json.dumps(context, ensure_ascii=False)
+    if config.get("research_context") is not None:
+        prompt += context_prompt(config["research_context"])
     result = execute_stage(
         prompt,
         schema_path("research"),
