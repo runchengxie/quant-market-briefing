@@ -12,6 +12,7 @@ from filelock import Timeout
 
 from .analysis import analyze
 from .calendar import select_session
+from .context import load_context
 from .contracts import aware_time, load_document
 from .editor import edit
 from .publication import build_bundle
@@ -33,6 +34,10 @@ def parser() -> argparse.ArgumentParser:
         )
         if name != "research":
             command.add_argument("--evidence", type=Path, required=True)
+        else:
+            command.add_argument(
+                "--context", type=Path, help="Existing intel research JSON; unreviewed search leads"
+            )
         command.add_argument(
             "--data-root", type=Path, default=Path.home() / "data" / "quant-market-briefing"
         )
@@ -126,9 +131,23 @@ def _generate(args, command_prefix, now: datetime) -> int:
             raise ValueError("Evidence collection timestamp is in the future")
     if args.timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
+    imported_context = None
+    if getattr(args, "context", None) is not None:
+        imported_context = load_context(args.context, session, now)
     with date_lock(args.data_root, session["market_date"]):
         run_dir, revision = allocate_revision(args.data_root, session["market_date"])
         config = _config(args, run_dir, revision, session["market_date"], command_prefix)
+        if imported_context is not None:
+            write_atomic(run_dir / "research-context.json", imported_context)
+            config["research_context"] = imported_context
+        context_metadata = (
+            {
+                "research_context_sha256": file_hash(run_dir / "research-context.json"),
+                "research_context_source_sha256": imported_context["source_sha256"],
+            }
+            if imported_context is not None
+            else {}
+        )
         write_atomic(
             run_dir / "request.json",
             {
@@ -141,6 +160,7 @@ def _generate(args, command_prefix, now: datetime) -> int:
                 "resource_hashes": resource_hashes(),
                 "analyst_model": config["analyst_model"],
                 "editor_model": config["editor_model"],
+                **context_metadata,
                 **{
                     k: config[k]
                     for k in (
@@ -174,6 +194,7 @@ def _generate(args, command_prefix, now: datetime) -> int:
             "evidence_sha256": file_hash(run_dir / "evidence.json"),
             "analyst_model": config["analyst_model"],
             "editor_model": config["editor_model"],
+            **context_metadata,
             **{
                 k: config[k]
                 for k in (
@@ -207,6 +228,12 @@ def _existing(args, command_prefix) -> int:
             metadata = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
             if file_hash(run_dir / "evidence.json") != metadata["evidence_sha256"]:
                 raise ValueError("Frozen evidence changed after analysis")
+            if (
+                metadata.get("research_context_sha256")
+                and file_hash(run_dir / "research-context.json")
+                != metadata["research_context_sha256"]
+            ):
+                raise ValueError("Frozen research context changed after analysis")
             if metadata["resource_hashes"] != resource_hashes():
                 raise ValueError("Prompts/schemas changed; create a new run revision")
             saved_model = metadata["editor_model"]

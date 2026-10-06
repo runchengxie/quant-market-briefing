@@ -14,6 +14,7 @@ Requires Python 3.11–3.13, uv and a separately authenticated Codex CLI.
 uv sync --locked --group dev
 uv run market-briefing --help
 uv run market-briefing research --date latest --data-root /external/briefings
+uv run market-briefing research --date YYYY-MM-DD --context /external/intel-research.json --data-root /external/briefings
 uv run market-briefing run --date YYYY-MM-DD --evidence /external/evidence.json --data-root /external/briefings
 ```
 
@@ -29,7 +30,7 @@ Run outputs default to ~/data/quant-market-briefing. Each explicit rerun creates
 
 | Command | Input | Output |
 | --- | --- | --- |
-| research | Session date and live web search | Frozen evidence, analysis and five-paragraph draft |
+| research | Session date, optional intel context and live web search | Frozen evidence, analysis and five-paragraph draft |
 | analyze | Evidence file and session date | New revision with evidence and analysis |
 | edit | --run-dir containing analysis | Five-paragraph draft |
 | validate | --run-dir containing draft | Mechanical findings and exit status |
@@ -37,6 +38,8 @@ Run outputs default to ~/data/quant-market-briefing. Each explicit rerun creates
 | run | Evidence file and session date | Both model stages and mechanical findings |
 
 See [Local run](docs/local-run.md), [Contracts and integration](docs/integration.md), and [Chinese editorial rules](src/market_briefing/resources/prompts/editor.zh-CN.md).
+
+`research --context` accepts the existing intel web-research `schema_version: "1.0"` document as unreviewed search leads. The importer checks session, timestamps, source URLs and size before starting a model, then freezes a snapshot and input hashes in the revision. Research and challenge must verify source originals before using those leads as evidence. Candidate acceptance or an upstream review label does not grant publication approval. See [context import and follow-up scope](docs/context-import.md).
 
 ## Trust boundaries
 
