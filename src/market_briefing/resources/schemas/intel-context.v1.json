@@ -82,7 +82,7 @@
           },
           "source_url": {
             "type": "string",
-            "pattern": "^https://",
+            "pattern": "^[Hh][Tt][Tt][Pp][Ss]?://",
             "format": "uri",
             "maxLength": 4096
           },

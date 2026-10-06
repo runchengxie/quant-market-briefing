@@ -23,6 +23,9 @@ cutoff and no later than the new research start. Timestamped sources cannot
 exceed the upstream cutoff; closing sources must follow the session close.
 Date-only sources retain their actual dates and lack exact publication times.
 Their intraday availability still needs live verification.
+Search leads accept both HTTP and HTTPS, matching the upstream producer.
+Final evidence keeps its existing HTTPS-source requirement; a lead without a
+verifiable HTTPS original cannot bypass that contract.
 
 The original bytes are read and hashed once. `research-context.json` saves a
 normalized `market.context-import.v1` envelope containing the original

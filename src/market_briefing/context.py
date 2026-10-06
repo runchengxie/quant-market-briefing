@@ -49,7 +49,12 @@ def load_context(path: Path, session: dict, cutoff: datetime) -> dict:
         if candidate["observation_date"] != session["market_date"]:
             raise ValueError("Research context candidate session mismatch")
         url = urlsplit(candidate["source_url"])
-        if not url.hostname or url.username is not None or url.password is not None:
+        if (
+            url.scheme not in {"http", "https"}
+            or not url.hostname
+            or url.username is not None
+            or url.password is not None
+        ):
             raise ValueError("Research context requires public source URLs")
         if candidate.get("publication_precision", "timestamp") == "date":
             source_date = candidate.get("source_date")

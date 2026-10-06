@@ -60,6 +60,14 @@ def test_context_keeps_original_hash_and_does_not_grant_trust(tmp_path, context_
     assert "必须在原文另行找到支持" in prompt
 
 
+@pytest.mark.parametrize("scheme", ["http", "https", "HTTP", "HTTPS"])
+def test_http_source_is_a_valid_upstream_search_lead(tmp_path, context_document, scheme):
+    url = f"{scheme}://example.com/synthetic"
+    context_document["candidates"][0]["source_url"] = url
+    imported = load_context(save_context(tmp_path, context_document), SESSION, NOW)
+    assert imported["document"]["candidates"][0]["source_url"] == url
+
+
 @pytest.mark.parametrize(
     "field,value",
     [
@@ -144,7 +152,7 @@ def test_invalid_context_never_starts_research(tmp_path, context_document, monke
 
 
 def test_context_frozen_before_research(
-    tmp_path, context_document, evidence, analysis, monkeypatch
+    tmp_path, context_document, evidence, analysis, monkeypatch, capsys
 ):
     def fake_research(session, cutoff, config):
         saved = json.loads(
@@ -174,6 +182,10 @@ def test_context_frozen_before_research(
             record["research_context_source_sha256"]
             == hashlib.sha256(path.read_bytes()).hexdigest()
         )
+    snapshot = run / "research-context.json"
+    snapshot.write_text(snapshot.read_text(encoding="utf-8") + " ", encoding="utf-8")
+    assert main(["edit", "--run-dir", str(run)], now=NOW) == 2
+    assert "Frozen research context changed after analysis" in capsys.readouterr().err
 
 
 def test_context_reaches_both_live_stages(
