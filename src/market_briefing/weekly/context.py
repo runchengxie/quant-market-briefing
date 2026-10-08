@@ -95,9 +95,9 @@ def load_weekly_context(
                 ):
                     chosen = run
                     break
-                result["missing_inputs"].append(f"Incomplete daily revision: {day}/{run.name}")
+                result["missing_inputs"].append(f"日报修订不完整：{day}/{run.name}")
             if chosen is None:
-                result["missing_inputs"].append(f"Missing daily session: {day}")
+                result["missing_inputs"].append(f"缺少 {day} 的日报上下文。")
                 continue
             docs = {
                 name: read(chosen / f"{name}.json", root)
@@ -140,7 +140,7 @@ def load_weekly_context(
                 }
             )
     else:
-        result["missing_inputs"].append("Daily context was not supplied; use live research.")
+        result["missing_inputs"].append("未提供日报上下文，本次采用联网调查。")
     if previous_run is not None:
         root = previous_run.resolve()
         docs = {

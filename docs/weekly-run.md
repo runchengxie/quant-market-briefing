@@ -21,7 +21,7 @@ Defaults match the daily quality preview: Astra/xhigh for research, Astra/high f
 
 Daily context is optional and supports this producer's daily revision directories. The highest complete revision per session supplies unreviewed leads, with exact input hashes and missing-day diagnostics. A valid independent review is required to record reviewed status. At most 32 daily revisions are examined; individual JSON is limited to 2 MiB and aggregate context to 16 MiB. Symlinks escaping supplied roots are rejected. A previous validated weekly draft can supply an attributed prior interpretation; without it, the report explicitly has no previous-week comparison.
 
-Frozen context, original and challenged research, reconciliation, grouped event developments, evidence/analysis, invocation logs and metadata remain in the revision. `briefing.json`, `briefing.txt` and `validation.json` distinguish failed drafts from mechanically valid drafts; neither establishes source approval. Missing coverage is retained separately. The approximately 1,500–2,500 Chinese-character target is a warning only.
+Frozen context, original and challenged research, reconciliation, grouped event developments, evidence/analysis, invocation logs and metadata remain in the revision. `briefing.json`, `briefing.txt` and `validation.json` distinguish failed drafts from mechanically valid drafts; neither establishes source approval. The standalone text includes the trusted week, UTC/New York cutoff, draft label and missing-input disclosure. The approximately 1,500–2,500 Chinese-character target is a warning only.
 
 ## Resume, validate and review
 
