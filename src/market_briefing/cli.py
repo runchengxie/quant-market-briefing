@@ -67,6 +67,9 @@ def parser() -> argparse.ArgumentParser:
     bundle.add_argument("--review", type=Path, required=True)
     bundle.add_argument("--producer-commit", required=True)
     bundle.add_argument("--audience", choices=["internal", "public"], default="internal")
+    from .weekly.cli import register_commands
+
+    register_commands(commands)
     return root
 
 
@@ -268,6 +271,10 @@ def main(
 ) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command.startswith("weekly-"):
+            from .weekly.cli import dispatch
+
+            return dispatch(args, command_prefix, now or datetime.now(UTC))
         if args.command in {"run", "analyze", "research"}:
             return _generate(args, command_prefix, now or datetime.now(UTC))
         return _existing(args, command_prefix)

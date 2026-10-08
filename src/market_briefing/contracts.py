@@ -18,6 +18,12 @@ def schema_path(kind: str) -> Path:
         "review",
         "research",
         "intel-context",
+        "weekly-evidence",
+        "weekly-analysis",
+        "weekly-editor",
+        "weekly-briefing",
+        "weekly-review",
+        "weekly-research",
     }:
         raise ValueError(f"Unknown document kind: {kind}")
     return Path(str(files("market_briefing").joinpath("resources", "schemas", f"{kind}.v1.json")))
