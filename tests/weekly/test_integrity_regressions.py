@@ -153,3 +153,87 @@ def test_challenge_corrected_endpoint_remaps_exact_comparison_id(weekly_evidence
     }
     evidence, analysis = assemble_weekly_research(reconciled, metadata, {})
     assert evidence["comparisons"][0]["id"] == expected
+
+
+def test_trusted_scope_and_schedule_clocks_are_not_market_numbers(
+    weekly_evidence, weekly_analysis, weekly_editor_output
+):
+    from market_briefing.weekly.editor import assemble_weekly_briefing
+
+    weekly_editor_output["sections"][0]["text"] = (
+        "回顾周为2026年9月28日至10月4日，资料截止2026年10月3日08:00:00 UTC。材料仍不足。"
+    )
+    weekly_editor_output["sections"][4]["text"] = (
+        "下周为10月5日至11日，预定于10月6日14:00发布合成报告。"
+    )
+    brief = assemble_weekly_briefing(
+        weekly_editor_output, weekly_evidence, weekly_analysis, "run", 1
+    )
+    assert brief["quality"]["errors"] == []
+
+
+@pytest.mark.parametrize("period", ["2026-07；2026-10-02发布版本", "2026年7月；9月30日更新版本"])
+def test_linked_reference_month_and_named_index_are_not_added_values(
+    period, weekly_evidence, weekly_analysis, weekly_editor_output
+):
+    from market_briefing.weekly.editor import assemble_weekly_briefing
+
+    weekly_evidence["observations"][1]["reference_period"] = period
+    weekly_evidence["observations"][1]["instrument"] = "S&P 500"
+    weekly_editor_output["sections"][0]["text"] = (
+        "标普500相关材料涉及7月观测，不能据此判断实际市场。"
+    )
+    brief = assemble_weekly_briefing(
+        weekly_editor_output, weekly_evidence, weekly_analysis, "run", 1
+    )
+    assert brief["quality"]["errors"] == []
+    weekly_editor_output["sections"][0]["text"] += "上涨999%。"
+    assert assemble_weekly_briefing(
+        weekly_editor_output, weekly_evidence, weekly_analysis, "run", 1
+    )["quality"]["errors"]
+
+
+def test_bound_chinese_count_and_indicative_estimate_qualification(
+    weekly_evidence, weekly_analysis, weekly_editor_output
+):
+    from market_briefing.weekly.editor import assemble_weekly_briefing
+
+    weekly_evidence["observations"][1].update(
+        value="承诺在四个月内完成，属于指示性插值估计。", unit="text", classification="estimate"
+    )
+    weekly_analysis["claims"][0]["temporal_type"] = "estimate"
+    weekly_editor_output["sections"] = [
+        {
+            **section,
+            "text": "承诺在4个月内完成，这是指示性插值资料。"
+            if section["topic"] != "next_week"
+            else section["text"],
+        }
+        for section in weekly_editor_output["sections"]
+    ]
+    brief = assemble_weekly_briefing(
+        weekly_editor_output, weekly_evidence, weekly_analysis, "run", 1
+    )
+    assert brief["quality"]["errors"] == []
+
+
+def test_chinese_prose_words_are_not_invented_arabic_numbers():
+    from market_briefing.weekly.validate import numeric_tokens
+
+    assert numeric_tokens("统一周五，两家公司", [], []) == set()
+
+
+def test_conditional_estimate_keeps_uncertainty(
+    weekly_evidence, weekly_analysis, weekly_editor_output
+):
+    from market_briefing.weekly.editor import assemble_weekly_briefing
+
+    weekly_evidence["observations"][1]["classification"] = "estimate"
+    weekly_analysis["claims"][0]["temporal_type"] = "estimate"
+    for section in weekly_editor_output["sections"]:
+        if section["topic"] != "next_week":
+            section["text"] = "后续数据若变化，应重新评估判断。"
+    brief = assemble_weekly_briefing(
+        weekly_editor_output, weekly_evidence, weekly_analysis, "run", 1
+    )
+    assert brief["quality"]["errors"] == []

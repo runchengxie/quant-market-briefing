@@ -34,3 +34,9 @@ uv run market-briefing weekly-bundle --run-dir /external/weekly/YYYY-MM-DD/r0001
 Resume editing only if no final briefing/text/validation output exists. Input hashes, resources, identity and saved editor settings must match; changing any requires a fresh research revision. Failed candidates are retained. Never overwrite final output or an approved revision.
 
 Independent source review must inspect originals and bind exact evidence/analysis/briefing SHA-256 hashes, week, run and revision, then approve exactly all final referenced claims. The review schema is `market.weekly-source-review.v1`. The local bundle uses `research.platform-publication.v1`, weekly schemas, internal audience by default and consumer ID `market-intel`. Existing daily consumer adapters do not imply weekly support. Consumer rendering and production scheduling require follow-up integration in their owner repositories.
+
+## Validation boundary
+
+Mechanical checks bind numeric prose to the linked evidence graph, including source dates, scheduled clocks, reference months and index names. Chinese source counts can support Arabic renderings; ordinary Chinese prose is not treated as a numeric parser. Conditional estimates must retain uncertainty. These checks do not replace independent semantic and source review.
+
+The initial live September 28–October 4, 2026 run completed research, challenge and editing, retaining 31 sources, 53 observations, 10 event groups, 4 schedules and 8 computed comparisons. Its actual October 8 cutoff is disclosed. An explicit new revision reuses hashed frozen research inputs to rerun editing after validator fixes; the original failed draft remains immutable.

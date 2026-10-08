@@ -141,7 +141,11 @@ def linked_records(ids: list[str], evidence: dict) -> list[dict]:
 
     for key in ids:
         visit(key)
-    return list(found.values())
+    source_ids = {record["source_id"] for record in found.values() if "source_id" in record}
+    return [
+        *found.values(),
+        *(source for source in evidence["sources"] if source["id"] in source_ids),
+    ]
 
 
 def validate_weekly_analysis(analysis: dict, evidence: dict) -> None:
