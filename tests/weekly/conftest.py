@@ -139,3 +139,42 @@ def weekly_editor_output(weekly_analysis):
             for s in weekly_analysis["sections"]
         ],
     }
+
+
+@pytest.fixture
+def weekly_briefing(weekly_evidence, weekly_analysis, weekly_editor_output):
+    return {
+        "schema_version": "market.weekly-briefing.v1",
+        "market": "US",
+        "product": "weekly",
+        **{
+            key: weekly_evidence[key]
+            for key in [
+                "week_start",
+                "week_end_exclusive",
+                "retrospective_end",
+                "timezone",
+                "evidence_cutoff",
+            ]
+        },
+        "generated_at": "2026-10-03T09:00:00Z",
+        "run_id": "us-weekly-2026-09-28-r0001",
+        "revision": 1,
+        "status": "validated_draft",
+        **weekly_editor_output,
+        "brief_text": "\n\n".join(
+            f"{s['heading']}\n{s['text']}" for s in weekly_editor_output["sections"]
+        ),
+        "thesis": weekly_analysis["thesis"],
+        "previous_view": weekly_analysis["previous_view"],
+        "sources": weekly_evidence["sources"],
+        "missing_inputs": ["缺少真实资料"],
+        "quality": {
+            "structure_passed": True,
+            "evidence_links_passed": True,
+            "editorial_rules_passed": True,
+            "source_audit_passed": False,
+            "errors": [],
+            "warnings": [],
+        },
+    }
