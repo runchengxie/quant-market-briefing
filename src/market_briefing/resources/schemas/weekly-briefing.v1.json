@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.weekly-briefing.v1",
+      "type": "string"
+    },
+    "market": {
+      "const": "US",
+      "type": "string"
+    },
+    "product": {
+      "const": "weekly",
+      "type": "string"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "week_end_exclusive": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "retrospective_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "timezone": {
+      "const": "America/New_York",
+      "type": "string"
+    },
+    "evidence_cutoff": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "validated_draft"
+      ]
+    },
+    "headline": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string",
+            "enum": [
+              "core",
+              "macro",
+              "events",
+              "market_response",
+              "next_week"
+            ]
+          },
+          "heading": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          }
+        },
+        "required": [
+          "topic",
+          "heading",
+          "text",
+          "claim_ids"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "brief_text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "thesis": {
+      "type": "object",
+      "properties": {
+        "stance": {
+          "type": "string",
+          "enum": [
+            "constructive",
+            "neutral",
+            "cautious",
+            "unassessable"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "horizon": {
+          "const": "1-4w",
+          "type": "string"
+        },
+        "drivers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "counterevidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "invalidation_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "stance",
+        "confidence",
+        "horizon",
+        "drivers",
+        "counterevidence",
+        "invalidation_conditions"
+      ],
+      "additionalProperties": false
+    },
+    "previous_view": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "absent",
+            "available"
+          ]
+        },
+        "week_start": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comparison": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "status",
+        "week_start",
+        "sha256",
+        "comparison"
+      ],
+      "additionalProperties": false
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "publisher",
+          "url",
+          "published_at"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "quality": {
+      "type": "object",
+      "properties": {
+        "structure_passed": {
+          "type": "boolean"
+        },
+        "evidence_links_passed": {
+          "type": "boolean"
+        },
+        "editorial_rules_passed": {
+          "type": "boolean"
+        },
+        "source_audit_passed": {
+          "const": false,
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "structure_passed",
+        "evidence_links_passed",
+        "editorial_rules_passed",
+        "source_audit_passed",
+        "errors",
+        "warnings"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "market",
+    "product",
+    "week_start",
+    "week_end_exclusive",
+    "retrospective_end",
+    "timezone",
+    "evidence_cutoff",
+    "generated_at",
+    "run_id",
+    "revision",
+    "status",
+    "headline",
+    "sections",
+    "brief_text",
+    "thesis",
+    "previous_view",
+    "sources",
+    "missing_inputs",
+    "quality"
+  ],
+  "additionalProperties": false
+}

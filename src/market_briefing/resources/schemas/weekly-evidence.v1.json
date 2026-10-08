@@ -1,0 +1,420 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.weekly-evidence.v1",
+      "type": "string"
+    },
+    "market": {
+      "const": "US",
+      "type": "string"
+    },
+    "product": {
+      "const": "weekly",
+      "type": "string"
+    },
+    "week_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "week_end_exclusive": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "retrospective_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "timezone": {
+      "const": "America/New_York",
+      "type": "string"
+    },
+    "baseline_session": {
+      "type": "string",
+      "format": "date"
+    },
+    "final_session": {
+      "type": "string",
+      "format": "date"
+    },
+    "scheduled_close": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_cutoff": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "publisher": {
+            "type": "string",
+            "minLength": 1
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "publisher",
+          "url",
+          "published_at"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "percent",
+              "basis_points",
+              "percentage_points",
+              "count",
+              "usd",
+              "ratio",
+              "index_level",
+              "text"
+            ]
+          },
+          "reference_period": {
+            "type": "string",
+            "minLength": 1
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "realized",
+              "estimate"
+            ]
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "known_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verification": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "unverified"
+            ]
+          },
+          "instrument": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contract": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "adjustment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endpoint_status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "lagged"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "metric",
+          "value",
+          "unit",
+          "reference_period",
+          "classification",
+          "source_id",
+          "observed_at",
+          "known_at",
+          "verification",
+          "instrument",
+          "contract",
+          "adjustment",
+          "endpoint_status"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "topic_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "event_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "known_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "development": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "topic_key",
+          "event_at",
+          "known_at",
+          "evidence_ids",
+          "development"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "scheduled_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "event_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "known_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "tentative"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "event_at",
+          "known_at",
+          "source_id",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "comparisons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "percent",
+              "basis_points"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "return",
+              "yield_change"
+            ]
+          },
+          "formula": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 2
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stale": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "metric",
+          "value",
+          "unit",
+          "method",
+          "formula",
+          "evidence_ids",
+          "start_at",
+          "end_at",
+          "stale"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "market",
+    "product",
+    "week_start",
+    "week_end_exclusive",
+    "retrospective_end",
+    "timezone",
+    "baseline_session",
+    "final_session",
+    "scheduled_close",
+    "evidence_cutoff",
+    "collected_at",
+    "sources",
+    "observations",
+    "events",
+    "scheduled_events",
+    "comparisons",
+    "missing_inputs"
+  ],
+  "additionalProperties": false
+}

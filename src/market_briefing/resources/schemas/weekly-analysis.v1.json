@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.weekly-analysis.v1",
+      "type": "string"
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "fact",
+              "inference"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "temporal_type": {
+            "type": "string",
+            "enum": [
+              "realized",
+              "estimate",
+              "mixed",
+              "scheduled"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "kind",
+          "evidence_ids",
+          "temporal_type"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "thesis": {
+      "type": "object",
+      "properties": {
+        "stance": {
+          "type": "string",
+          "enum": [
+            "constructive",
+            "neutral",
+            "cautious",
+            "unassessable"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "horizon": {
+          "const": "1-4w",
+          "type": "string"
+        },
+        "drivers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "counterevidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "invalidation_conditions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "stance",
+        "confidence",
+        "horizon",
+        "drivers",
+        "counterevidence",
+        "invalidation_conditions"
+      ],
+      "additionalProperties": false
+    },
+    "previous_view": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "absent",
+            "available"
+          ]
+        },
+        "week_start": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "comparison": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "status",
+        "week_start",
+        "sha256",
+        "comparison"
+      ],
+      "additionalProperties": false
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string",
+            "enum": [
+              "core",
+              "macro",
+              "events",
+              "market_response",
+              "next_week"
+            ]
+          },
+          "claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 0
+          },
+          "commentary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "topic",
+          "claim_ids",
+          "commentary"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "selected_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "watchlist_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "comparison_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "missing_inputs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "schema_version",
+    "claims",
+    "thesis",
+    "previous_view",
+    "sections",
+    "selected_event_ids",
+    "watchlist_ids",
+    "comparison_ids",
+    "missing_inputs"
+  ],
+  "additionalProperties": false
+}
