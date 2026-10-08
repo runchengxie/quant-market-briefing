@@ -118,9 +118,10 @@ def validate_weekly_draft(evidence: dict, analysis: dict, briefing: dict) -> dic
             r"预计|预期|预测|估计|可能|假设|预估", text
         ):
             errors.append("Section loses estimate qualification")
-        if any(c["temporal_type"] == "scheduled" for c in linked) and not re.search(
-            r"日程|预定|计划|下周|将|拟|待|预计", text
-        ):
+        if (
+            any(c["temporal_type"] == "scheduled" for c in linked)
+            or any("status" in record for record in records)
+        ) and not re.search(r"日程|预定|计划|下周|将|拟|待|预计", text):
             errors.append("Section presents scheduled event without qualification")
         if not linked and not re.search(r"缺|无|未|不足|有限|暂无", text):
             errors.append("Unlinked section must disclose missing coverage")

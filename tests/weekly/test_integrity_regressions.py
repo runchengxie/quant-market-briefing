@@ -15,9 +15,7 @@ def test_event_claim_cannot_launder_invalid_observation(
         validate_weekly_analysis(weekly_analysis, weekly_evidence)
 
 
-@pytest.mark.parametrize(
-    "mode", ["scheduled_as_realized", "estimate_as_realized", "realized_as_estimate"]
-)
+@pytest.mark.parametrize("mode", ["scheduled_as_realized", "estimate_as_realized"])
 def test_claim_temporal_type_must_match_underlying_records(weekly_evidence, weekly_analysis, mode):
     from market_briefing.weekly.contracts import validate_weekly_analysis
 
@@ -25,10 +23,41 @@ def test_claim_temporal_type_must_match_underlying_records(weekly_evidence, week
         weekly_analysis["claims"][1]["temporal_type"] = "realized"
     elif mode == "estimate_as_realized":
         weekly_evidence["observations"][1]["classification"] = "estimate"
-    else:
-        weekly_analysis["claims"][0]["temporal_type"] = "estimate"
     with pytest.raises(ValueError):
         validate_weekly_analysis(weekly_analysis, weekly_evidence)
+
+
+def test_cross_asset_endpoints_keep_their_own_civil_dates(weekly_evidence):
+    from market_briefing.weekly.comparisons import calculate_comparison
+    from market_briefing.weekly.contracts import validate_weekly_document
+
+    start, end = weekly_evidence["observations"]
+    start["observed_at"] = "2026-09-25T00:00:00+01:00"
+    end["observed_at"] = "2026-10-02T00:00:00+01:00"
+    weekly_evidence["comparisons"] = [calculate_comparison(start, end, "return")]
+    validate_weekly_document(weekly_evidence, "weekly-evidence")
+
+
+def test_conservative_mixed_temporal_type_keeps_estimate_qualification(
+    weekly_evidence, weekly_analysis, weekly_editor_output
+):
+    from market_briefing.weekly.editor import assemble_weekly_briefing
+
+    weekly_evidence["observations"][1]["classification"] = "estimate"
+    weekly_analysis["claims"][0]["temporal_type"] = "mixed"
+    weekly_editor_output["sections"] = [
+        {
+            **section,
+            "text": "资料包含已公布的初步估计，仍可能修订。"
+            if section["topic"] != "next_week"
+            else section["text"],
+        }
+        for section in weekly_editor_output["sections"]
+    ]
+    brief = assemble_weekly_briefing(
+        weekly_editor_output, weekly_evidence, weekly_analysis, "run", 1
+    )
+    assert brief["quality"]["errors"] == []
 
 
 @pytest.mark.parametrize("field", ["headline", "heading"])

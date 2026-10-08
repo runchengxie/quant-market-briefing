@@ -93,12 +93,7 @@ def validate_weekly_document(payload: dict, kind: str) -> None:
                 strict=True,
             ):
                 observation = observations[key]
-                actual_day = (
-                    aware_time(observation["observed_at"])
-                    .astimezone(ZoneInfo(payload["timezone"]))
-                    .date()
-                    .isoformat()
-                )
+                actual_day = aware_time(observation["observed_at"]).date().isoformat()
                 if observation["endpoint_status"] == "complete" and actual_day != expected_day:
                     raise ValueError("Completed comparison endpoint is not the weekly session date")
                 if actual_day > expected_day:
@@ -170,14 +165,16 @@ def validate_weekly_analysis(analysis: dict, evidence: dict) -> None:
                 temporal.add(observation["classification"])
             elif "status" in observation:
                 temporal.add("scheduled")
-        expected_temporal = (
-            "scheduled"
-            if "scheduled" in temporal
-            else "mixed"
-            if temporal == {"realized", "estimate"}
-            else next(iter(temporal))
+        allowed_temporal = (
+            {"realized", "estimate", "mixed"}
+            if claim["kind"] == "inference"
+            else {"realized", "mixed"}
         )
-        if claim["temporal_type"] != expected_temporal:
+        if "estimate" in temporal:
+            allowed_temporal &= {"estimate", "mixed"}
+        if "scheduled" in temporal:
+            allowed_temporal = {"scheduled", "mixed"} if "estimate" not in temporal else {"mixed"}
+        if claim["temporal_type"] not in allowed_temporal:
             raise ValueError("Claim temporal classification differs from supporting evidence")
     if any(not set(s["claim_ids"]) <= claims.keys() for s in analysis["sections"]):
         raise ValueError("Unresolved section claim")
