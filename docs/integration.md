@@ -37,6 +37,12 @@ Deduplicate delivery using product + market_date + revision. Producer retries ar
 
 ## Limitations
 
+## Weekly local product
+
+Weekly production uses separate `market.weekly-evidence.v1`, `market.weekly-analysis.v1`, `market.weekly-briefing.v1` and `market.weekly-source-review.v1` contracts. Its local bundle lists weekly briefing/review artifacts in the existing publication envelope with consumer ID `market-intel`. The review binds exact evidence, analysis and briefing hashes, product/week/run/revision and all final claims. A consumer must explicitly implement weekly rendering and review verification; accepting daily schemas does not confer weekly support. No weekly scheduler or delivery integration is provided by this producer. See [Weekly local research](weekly-run.md).
+
+## Daily limitations
+
 Mechanical numeric checks compare exact digit tokens against linked evidence values/reference periods. They do not prove correct units, signs, time interpretation, Chinese-number wording or causal reasoning. Rounding/scaling is intentionally unsupported in this release. All such meaning needs independent review.
 
 The exchange calendar is library-based, not a live exchange-closure feed. Emergency closures require operator/calendar updates. Stage caching and automatically repaired prose are intentionally absent from v1; failures retain diagnostics and explicit reruns create fresh revisions.

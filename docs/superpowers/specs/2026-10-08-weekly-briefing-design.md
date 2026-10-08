@@ -1,6 +1,6 @@
 # U.S. weekly market briefing
 
-Status: proposed written design; the user approved the content direction, but has not reviewed this specification or an implementation plan.
+Status: written design and implementation plan approved by the user on 2026-10-08; Native execution selected.
 
 ## Outcome and scope
 
