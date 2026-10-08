@@ -62,8 +62,6 @@ Tests use synthetic evidence and fake model executables, with no paid model, mar
 
 GitHub Actions runs the offline suite, Ruff lint/format checks and wheel/source builds on Ubuntu and Windows with Python 3.11, 3.12 and 3.13. It triggers for pull requests, pushes to main and manual dispatch. Runtime, development and build tooling dependencies are installed from the lockfile before installing the project; installation and packaging use that environment without build isolation. Temporary test and build outputs stay outside the source tree. CI does not install Codex, use model credentials, generate live reports or deliver notifications. Its checks establish software behavior, not research quality or source approval.
 
-## Research templates
-
 ## Weekly research
 
 The independent local weekly product covers macro/policy, earnings and geopolitical events, cross-asset responses and the next-week calendar. See [Weekly local research](docs/weekly-run.md) for completed-week selection, provenance, review and configuration.

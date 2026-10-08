@@ -35,8 +35,6 @@ quant-intel-deploy owns runtime version pins, external configuration, service-us
 
 Deduplicate delivery using product + market_date + revision. Producer retries are not second delivery authorization. Deploy from an immutable release path, never a development worktree.
 
-## Limitations
-
 ## Weekly local product
 
 Weekly production uses separate `market.weekly-evidence.v1`, `market.weekly-analysis.v1`, `market.weekly-briefing.v1` and `market.weekly-source-review.v1` contracts. Its local bundle lists weekly briefing/review artifacts in the existing publication envelope with consumer ID `market-intel`. The review binds exact evidence, analysis and briefing hashes, product/week/run/revision and all final claims. A consumer must explicitly implement weekly rendering and review verification; accepting daily schemas does not confer weekly support. No weekly scheduler or delivery integration is provided by this producer. See [Weekly local research](weekly-run.md).
