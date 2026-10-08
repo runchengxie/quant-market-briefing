@@ -36,7 +36,7 @@ def test_weekly_draft_rejects_invention(
         weekly_editor_output["sections"].reverse()
     if mode == "estimate":
         weekly_analysis["claims"][0]["temporal_type"] = "estimate"
-    if mode == "order":
+    if mode in {"order", "estimate"}:
         with pytest.raises(ValueError):
             assemble_weekly_briefing(
                 weekly_editor_output, weekly_evidence, weekly_analysis, "run", 1

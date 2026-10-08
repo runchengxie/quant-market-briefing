@@ -4,24 +4,7 @@ import re
 from datetime import date
 from decimal import Decimal
 
-from .contracts import COLLECTIONS, validate_weekly_analysis, validate_weekly_document
-
-
-def linked_records(ids: list[str], evidence: dict) -> list[dict]:
-    records = {item["id"]: item for name in COLLECTIONS for item in evidence[name]}
-    found = {}
-
-    def visit(key):
-        if key in found:
-            return
-        record = records[key]
-        found[key] = record
-        for reference in record.get("evidence_ids", []):
-            visit(reference)
-
-    for key in ids:
-        visit(key)
-    return list(found.values())
+from .contracts import linked_records, validate_weekly_analysis, validate_weekly_document
 
 
 def numeric_tokens(text: str, records: list[dict], dates: list[str]) -> set[Decimal]:
@@ -76,8 +59,34 @@ def validate_weekly_draft(evidence: dict, analysis: dict, briefing: dict) -> dic
     ):
         errors.append("Briefing changes missing inputs")
     claims = {claim["id"]: claim for claim in analysis["claims"]}
+    headline_records = linked_records(
+        [
+            key
+            for section in briefing["sections"]
+            for claim_id in section["claim_ids"]
+            if claim_id in claims
+            for key in claims[claim_id]["evidence_ids"]
+        ],
+        evidence,
+    )
+    headline_allowed = set()
+    for record in headline_records:
+        if isinstance(record.get("value"), (int, float)):
+            headline_allowed.add(abs(Decimal(str(record["value"]))))
+        for field in ["value", "title", "development"]:
+            if isinstance(record.get(field), str):
+                headline_allowed |= numeric_tokens(record[field], [record], [])
+    if (
+        not numeric_tokens(
+            briefing["headline"],
+            headline_records,
+            [evidence["week_start"], evidence["final_session"]],
+        )
+        <= headline_allowed
+    ):
+        errors.append("Headline introduces unsupported numbers")
     for section in briefing["sections"]:
-        text = section["text"]
+        text = section["heading"] + "\n" + section["text"]
         if not text.strip() or "\x00" in text:
             quality["editorial_rules_passed"] = False
             errors.append("Empty or invalid section text")

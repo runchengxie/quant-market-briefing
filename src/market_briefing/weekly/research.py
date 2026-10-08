@@ -59,22 +59,22 @@ def reconcile_weekly_revision(initial: dict, candidate: dict) -> tuple[dict, dic
                 changed.get(key, key) for key in revised["analysis"][field]
             ]
         if collection == "observations":
+            comparison_mapping = {}
             for request in revised["comparison_requests"]:
+                old_id = f"cmp_{request['start_id']}_{request['end_id']}_{request['method']}"
                 request["start_id"] = changed.get(request["start_id"], request["start_id"])
                 request["end_id"] = changed.get(request["end_id"], request["end_id"])
-
-            def comparison_id(key, changes=changed):
-                for old, fresh in changes.items():
-                    key = key.replace(f"cmp_{old}_", f"cmp_{fresh}_").replace(
-                        f"_{old}_", f"_{fresh}_"
-                    )
-                return key
+                comparison_mapping[old_id] = (
+                    f"cmp_{request['start_id']}_{request['end_id']}_{request['method']}"
+                )
 
             revised["analysis"]["comparison_ids"] = [
-                comparison_id(key) for key in revised["analysis"]["comparison_ids"]
+                comparison_mapping.get(key, key) for key in revised["analysis"]["comparison_ids"]
             ]
             for claim in revised["analysis"]["claims"]:
-                claim["evidence_ids"] = [comparison_id(key) for key in claim["evidence_ids"]]
+                claim["evidence_ids"] = [
+                    comparison_mapping.get(key, key) for key in claim["evidence_ids"]
+                ]
     return revised, mapping
 
 

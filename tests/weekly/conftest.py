@@ -121,7 +121,7 @@ def weekly_analysis():
         "selected_event_ids": ["e1"],
         "watchlist_ids": ["n1"],
         "comparison_ids": [],
-        "missing_inputs": ["缺少真实资料"],
+        "missing_inputs": ["合成资料，不是实际行情。", "缺少真实资料"],
     }
 
 
@@ -170,13 +170,16 @@ def weekly_briefing(weekly_evidence, weekly_analysis, weekly_editor_output):
         "thesis": weekly_analysis["thesis"],
         "previous_view": weekly_analysis["previous_view"],
         "sources": weekly_evidence["sources"],
-        "missing_inputs": ["缺少真实资料"],
+        "missing_inputs": ["合成资料，不是实际行情。", "缺少真实资料"],
         "quality": {
             "structure_passed": True,
             "evidence_links_passed": True,
             "editorial_rules_passed": True,
             "source_audit_passed": False,
             "errors": [],
-            "warnings": [],
+            "warnings": [
+                "Editorial length outside soft target: 135 Chinese characters",
+                "Coverage has missing inputs; inspect the separate missing_inputs record",
+            ],
         },
     }

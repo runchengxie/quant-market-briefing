@@ -150,6 +150,11 @@ def load_weekly_context(
             validate_weekly_document(doc, f"weekly-{name}")
         validate_weekly_analysis(docs["analysis"], docs["evidence"])
         brief = docs["briefing"]
+        from .validate import validate_weekly_draft
+
+        quality = validate_weekly_draft(docs["evidence"], docs["analysis"], brief)
+        if quality["errors"] or quality != brief["quality"]:
+            raise ValueError("Previous weekly draft has invalid or changed findings")
         if brief["status"] != "validated_draft" or brief["week_start"] >= week["week_start"]:
             raise ValueError("Previous weekly draft must be validated and earlier")
         if (

@@ -7,6 +7,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from ..contracts import aware_time, validate_document
+from .calendar import select_week
 from .comparisons import calculate_comparison
 
 TOPICS = ["core", "macro", "events", "market_response", "next_week"]
@@ -37,6 +38,12 @@ def validate_weekly_document(payload: dict, kind: str) -> None:
             or aware_time(payload["collected_at"]) < cutoff
         ):
             raise ValueError("Invalid close/collection cutoff")
+        calendar_week = select_week(cutoff, payload["week_start"])
+        for field in ["baseline_session", "final_session"]:
+            if payload[field] != calendar_week.get(field):
+                raise ValueError("Weekly session identity differs from exchange calendar")
+        if aware_time(payload["scheduled_close"]) != aware_time(calendar_week["scheduled_close"]):
+            raise ValueError("Weekly close differs from exchange calendar")
         sources = {item["id"]: item for item in payload["sources"]}
         all_ids = [item["id"] for name in COLLECTIONS for item in payload[name]]
         if len(sources) != len(payload["sources"]) or len(all_ids) != len(set(all_ids)):
@@ -80,6 +87,22 @@ def validate_weekly_document(payload: dict, kind: str) -> None:
             )
             if item != expected:
                 raise ValueError("Comparison differs from computed endpoints")
+            for key, expected_day in zip(
+                item["evidence_ids"],
+                [payload["baseline_session"], payload["final_session"]],
+                strict=True,
+            ):
+                observation = observations[key]
+                actual_day = (
+                    aware_time(observation["observed_at"])
+                    .astimezone(ZoneInfo(payload["timezone"]))
+                    .date()
+                    .isoformat()
+                )
+                if observation["endpoint_status"] == "complete" and actual_day != expected_day:
+                    raise ValueError("Completed comparison endpoint is not the weekly session date")
+                if actual_day > expected_day:
+                    raise ValueError("Comparison endpoint extends beyond its weekly session")
     elif kind in {"weekly-analysis", "weekly-editor", "weekly-briefing"}:
         if [s["topic"] for s in payload["sections"]] != TOPICS:
             raise ValueError("Weekly sections missing or out of order")
@@ -107,6 +130,25 @@ def render_sections(sections: list[dict]) -> str:
     return "\n\n".join(f"{section['heading']}\n{section['text']}" for section in sections)
 
 
+def linked_records(ids: list[str], evidence: dict) -> list[dict]:
+    records = {item["id"]: item for name in COLLECTIONS for item in evidence[name]}
+    found = {}
+
+    def visit(key):
+        if key not in records:
+            raise ValueError("Unresolved claim evidence")
+        if key in found:
+            return
+        record = records[key]
+        found[key] = record
+        for reference in record.get("evidence_ids", []):
+            visit(reference)
+
+    for key in ids:
+        visit(key)
+    return list(found.values())
+
+
 def validate_weekly_analysis(analysis: dict, evidence: dict) -> None:
     validate_weekly_document(evidence, "weekly-evidence")
     validate_weekly_document(analysis, "weekly-analysis")
@@ -117,12 +159,26 @@ def validate_weekly_analysis(analysis: dict, evidence: dict) -> None:
     for claim in claims.values():
         if not set(claim["evidence_ids"]) <= known.keys():
             raise ValueError("Unresolved claim evidence")
-        for key in claim["evidence_ids"]:
-            observation = known[key]
+        records = linked_records(claim["evidence_ids"], evidence)
+        temporal = set()
+        for observation in records:
             if "verification" in observation and (
                 observation["verification"] != "verified" or observation["value"] is None
             ):
                 raise ValueError("Claim uses unverified/missing observation")
+            if "classification" in observation:
+                temporal.add(observation["classification"])
+            elif "status" in observation:
+                temporal.add("scheduled")
+        expected_temporal = (
+            "scheduled"
+            if "scheduled" in temporal
+            else "mixed"
+            if temporal == {"realized", "estimate"}
+            else next(iter(temporal))
+        )
+        if claim["temporal_type"] != expected_temporal:
+            raise ValueError("Claim temporal classification differs from supporting evidence")
     if any(not set(s["claim_ids"]) <= claims.keys() for s in analysis["sections"]):
         raise ValueError("Unresolved section claim")
     for name, field in [

@@ -4,9 +4,11 @@ import argparse
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
+from ..contracts import aware_time
 from ..review import file_hash
 from ..storage import assert_external_path, write_atomic
 from .calendar import select_week
@@ -71,7 +73,15 @@ def _finish(evidence: dict, analysis: dict, config: dict) -> int:
         raise ValueError("Final output already exists; create a fresh research revision")
     brief = edit_week(analysis, evidence, config)
     write_atomic(run / "briefing.json", brief)
-    _text_atomic(run / "briefing.txt", brief["headline"] + "\n\n" + brief["brief_text"] + "\n")
+    cutoff = aware_time(brief["evidence_cutoff"])
+    end_day = (aware_time(brief["week_end_exclusive"]) - timedelta(days=1)).date().isoformat()
+    header = f"{brief['headline']}\n\n回顾周：{brief['week_start']} 至 {end_day}（纽约时间）\n资料截止：{cutoff.isoformat()}；纽约时间 {cutoff.astimezone(ZoneInfo('America/New_York')).isoformat()}\n状态：研究草稿，来源尚未独立审核。"
+    limitations = (
+        "\n\n资料缺口与限制\n" + "\n".join(f"- {item}" for item in brief["missing_inputs"])
+        if brief["missing_inputs"]
+        else ""
+    )
+    _text_atomic(run / "briefing.txt", header + "\n\n" + brief["brief_text"] + limitations + "\n")
     write_atomic(run / "validation.json", brief["quality"])
     _emit(
         {
