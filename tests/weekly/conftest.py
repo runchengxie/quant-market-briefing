@@ -133,7 +133,9 @@ def weekly_editor_output(weekly_analysis):
             {
                 "topic": s["topic"],
                 "heading": "合成资料",
-                "text": "这些合成资料仅供软件测试，不能据此判断实际市场。",
+                "text": "下周预定日程为合成资料，仅供软件测试，不能据此判断实际市场。"
+                if s["topic"] == "next_week"
+                else "这些合成资料仅供软件测试，不能据此判断实际市场。",
                 "claim_ids": copy.copy(s["claim_ids"]),
             }
             for s in weekly_analysis["sections"]

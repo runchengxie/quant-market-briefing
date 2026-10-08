@@ -64,6 +64,18 @@ GitHub Actions runs the offline suite, Ruff lint/format checks and wheel/source 
 
 ## Research templates
 
+## Weekly research
+
+The independent local weekly product covers macro/policy, earnings and geopolitical events, cross-asset responses and the next-week calendar. See [Weekly local research](docs/weekly-run.md) for completed-week selection, provenance, review and configuration.
+
+```sh
+uv run market-briefing weekly-research --week-start latest --data-root /external/quant-market-briefing
+```
+
+Weekly drafts use separate contracts and immutable revisions; no scheduler or delivery is enabled. Daily commands retain their existing interfaces.
+
+## Daily research templates
+
 The [original Chinese framework](src/market_briefing/resources/prompts/research-framework.zh-CN.md) is preserved as supplied. The [researcher template](src/market_briefing/resources/prompts/researcher.zh-CN.md) adds search, provenance and JSON rules. Both are packaged resources, alongside the editor template. Runtime options belong in the CLI/configuration; explanatory documents belong in docs.
 
 Research now requires separate short-term and six-to-twelve-month direction judgments, the most likely path, main drivers, counterarguments and invalidation conditions. Direction is independent of confidence. Evidence-backed inferences need not repeat a source's conclusion, but must retain linked observations and uncertainty. Missing data affects only dependent judgments; an unsupported direction remains explicitly unassessable. The editor preserves these judgments without choosing a direction or raising confidence. No bullish outcome, probability or price target is prescribed.
