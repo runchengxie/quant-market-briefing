@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import os
 import sys
 from datetime import UTC, datetime
 from importlib.resources import files
@@ -39,7 +40,9 @@ def parser() -> argparse.ArgumentParser:
                 "--context", type=Path, help="Existing intel research JSON; unreviewed search leads"
             )
         command.add_argument(
-            "--data-root", type=Path, default=Path.home() / "data" / "quant-market-briefing"
+            "--data-root",
+            type=Path,
+            help="Output directory; defaults to DATA_ROOT/quant-market-briefing",
         )
         command.add_argument("--analyst-model", default="gpt-6-astra")
         command.add_argument(
@@ -276,6 +279,16 @@ def main(
 
             return dispatch(args, command_prefix, now or datetime.now(UTC))
         if args.command in {"run", "analyze", "research"}:
+            if args.data_root is None:
+                if data_root := os.environ.get("DATA_ROOT"):
+                    args.data_root = Path(data_root) / "quant-market-briefing"
+                else:
+                    args.data_root = Path.home() / "data" / "quant-market-briefing"
+                    print(
+                        "Deprecated default output location: set DATA_ROOT or --data-root "
+                        "to select the external data directory. Existing files are not moved.",
+                        file=sys.stderr,
+                    )
             return _generate(args, command_prefix, now or datetime.now(UTC))
         return _existing(args, command_prefix)
     except (ValueError, RuntimeError, OSError, Timeout) as exc:
