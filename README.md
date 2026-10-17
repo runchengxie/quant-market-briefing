@@ -24,7 +24,14 @@ These are provisional settings for a quality-focused deep preview, not an experi
 
 The default --research-depth deep runs research, a separate live-search challenge and editing. --research-depth standard omits the challenge for a two-call comparison. Frozen-input run/analyze retain their offline research behavior. Each model stage has a default 1,200-second timeout, so the full deep workflow can take longer; --timeout-seconds overrides this per-stage limit.
 
-Run outputs default to ~/data/quant-market-briefing. Each explicit rerun creates a new immutable revision. No command sends notifications or installs schedules.
+Daily run outputs use explicit `--data-root` first, then `DATA_ROOT/quant-market-briefing`.
+Launchers can read the explicitly configured workspace TOML and inject its `data_root` as
+`DATA_ROOT`; the CLI does not search personal configuration. Without either setting,
+the legacy `~/data/quant-market-briefing` location remains supported with a deprecation
+notice. Existing revisions are never moved automatically. Keep using an explicit path
+to continue an existing revision history. Weekly commands retain their explicit
+`--data-root` / `--workspace-config` contract.
+Each explicit rerun creates a new immutable revision. No command sends notifications or installs schedules.
 
 ## Commands
 
