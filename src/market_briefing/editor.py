@@ -9,6 +9,7 @@ from .analysis import validate_analysis
 from .codex import execute_stage
 from .contracts import schema_path, validate_document
 from .numeric_bindings import RECORD_NAME, binding_marker, render_candidate
+from .research_audit import audit_marker, load_audit, verify_audit
 from .storage import write_atomic
 from .validate import validate_draft
 
@@ -21,6 +22,7 @@ def assemble_briefing(
     revision: int,
     *,
     bindings: dict | None = None,
+    audit: dict | None = None,
 ) -> dict:
     validate_document(output, "editor")
     validate_analysis(analysis, evidence)
@@ -44,10 +46,11 @@ def assemble_briefing(
             "editorial_rules_passed": False,
             "source_audit_passed": False,
             "errors": [],
-            "warnings": [binding_marker(bindings)] if bindings is not None else [],
+            "warnings": ([binding_marker(bindings)] if bindings is not None else [])
+            + ([audit_marker(audit)] if audit is not None else []),
         },
     }
-    quality = validate_draft(evidence, analysis, brief, bindings=bindings)
+    quality = validate_draft(evidence, analysis, brief, bindings=bindings, audit=audit)
     brief["quality"] = quality
     if not quality["errors"]:
         brief["status"] = "validated_draft"
@@ -56,6 +59,14 @@ def assemble_briefing(
 
 def edit(analysis: dict, evidence: dict, config: dict) -> dict:
     validate_analysis(analysis, evidence)
+    audit = load_audit(Path(config["run_dir"]))
+    if audit is not None:
+        verify_audit(
+            Path(config["run_dir"]),
+            {"quality": {"warnings": [audit_marker(audit)]}},
+            evidence,
+            analysis,
+        )
     instructions = (
         files("market_briefing")
         .joinpath("resources", "prompts", "editor.zh-CN.md")
@@ -64,7 +75,14 @@ def edit(analysis: dict, evidence: dict, config: dict) -> dict:
     prompt = (
         instructions
         + "\n\nFROZEN_INPUT_JSON\n"
-        + json.dumps({"analysis": analysis, "evidence": evidence}, ensure_ascii=False)
+        + json.dumps(
+            {
+                "analysis": analysis,
+                "evidence": evidence,
+                "research": audit["members"] if audit is not None else None,
+            },
+            ensure_ascii=False,
+        )
     )
     output = execute_stage(
         prompt,
@@ -85,4 +103,5 @@ def edit(analysis: dict, evidence: dict, config: dict) -> dict:
         config["run_id"],
         config["revision"],
         bindings=bindings,
+        audit=audit,
     )

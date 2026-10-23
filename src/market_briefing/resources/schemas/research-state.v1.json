@@ -1,0 +1,272 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.research-state.v1"
+    },
+    "short_term": {
+      "type": "object",
+      "properties": {
+        "horizon": {
+          "enum": [
+            "1-4w",
+            "6-12m"
+          ]
+        },
+        "assessment_status": {
+          "enum": [
+            "available",
+            "insufficient"
+          ]
+        },
+        "direction": {
+          "enum": [
+            "constructive",
+            "neutral",
+            "cautious",
+            null
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            null
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "counterevidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "gap": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "origin": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text",
+              "origin"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "horizon",
+        "assessment_status",
+        "direction",
+        "confidence",
+        "path",
+        "claim_ids",
+        "counterevidence",
+        "gap",
+        "conditions"
+      ],
+      "additionalProperties": false
+    },
+    "long_term": {
+      "type": "object",
+      "properties": {
+        "horizon": {
+          "enum": [
+            "1-4w",
+            "6-12m"
+          ]
+        },
+        "assessment_status": {
+          "enum": [
+            "available",
+            "insufficient"
+          ]
+        },
+        "direction": {
+          "enum": [
+            "constructive",
+            "neutral",
+            "cautious",
+            null
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            null
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "claim_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "counterevidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "gap": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "origin": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text",
+              "origin"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "horizon",
+        "assessment_status",
+        "direction",
+        "confidence",
+        "path",
+        "claim_ids",
+        "counterevidence",
+        "gap",
+        "conditions"
+      ],
+      "additionalProperties": false
+    },
+    "prior_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "enum": [
+              "observed",
+              "not_observed",
+              "unresolved",
+              "retired"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "window": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "end": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "explanation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "origin": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "evidence_ids",
+          "window",
+          "explanation"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "short_term",
+    "long_term",
+    "prior_conditions"
+  ],
+  "additionalProperties": false
+}

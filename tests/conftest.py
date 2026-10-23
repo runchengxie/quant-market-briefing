@@ -79,3 +79,26 @@ def bound_editor_output(editor_output):
     ):
         paragraph["text"] = paragraph["text"].replace(literal, "{{value:" + key + "}}")
     return result
+
+
+@pytest.fixture
+def research_state():
+    def view(horizon):
+        return {
+            "horizon": horizon,
+            "assessment_status": "available",
+            "direction": "neutral",
+            "confidence": "low",
+            "path": "材料有限，判断震荡。",
+            "claim_ids": ["c1"],
+            "counterevidence": ["缺少更多观察"],
+            "gap": "",
+            "conditions": [],
+        }
+
+    return {
+        "schema_version": "market.research-state.v1",
+        "short_term": view("1-4w"),
+        "long_term": view("6-12m"),
+        "prior_conditions": [],
+    }

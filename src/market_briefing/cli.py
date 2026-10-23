@@ -19,6 +19,7 @@ from .editor import edit
 from .numeric_bindings import load_bindings
 from .publication import build_bundle
 from .research import research
+from .research_audit import load_audit, verify_audit
 from .review import file_hash
 from .storage import allocate_revision, assert_external_path, date_lock, write_atomic
 from .validate import validate_draft
@@ -259,7 +260,14 @@ def _existing(args, command_prefix) -> int:
             return _finish_editor(evidence, analysis, config)
         if args.command == "validate":
             brief = load_document(run_dir / "briefing.json", "briefing")
-            quality = validate_draft(evidence, analysis, brief, bindings=load_bindings(run_dir))
+            verify_audit(run_dir, brief, evidence, analysis)
+            quality = validate_draft(
+                evidence,
+                analysis,
+                brief,
+                bindings=load_bindings(run_dir),
+                audit=load_audit(run_dir),
+            )
             _print(quality)
             return 0 if not quality["errors"] else 2
         manifest = build_bundle(run_dir, args.review, args.producer_commit, args.audience)

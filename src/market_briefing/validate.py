@@ -57,6 +57,7 @@ def validate_draft(
     briefing: dict,
     *,
     bindings: dict | None = None,
+    audit: dict | None = None,
 ) -> dict:
     from .numeric_bindings import MARKER, verify_bindings
 
@@ -81,6 +82,19 @@ def validate_draft(
         quality["evidence_links_passed"] = False
         errors.append(str(exc))
         return quality
+    from .research_audit import MARKER as AUDIT_MARKER
+    from .research_audit import verify_record
+
+    audit_markers = [w for w in briefing["quality"]["warnings"] if w.startswith(AUDIT_MARKER)]
+    warnings.extend(audit_markers)
+    if audit_markers or audit is not None:
+        try:
+            if audit is None:
+                raise ValueError("Missing research audit")
+            verify_record(audit, briefing, evidence, analysis)
+        except (ValueError, KeyError, TypeError) as exc:
+            errors.append(str(exc))
+            quality["evidence_links_passed"] = False
     markers = [w for w in briefing["quality"]["warnings"] if w.startswith(MARKER)]
     warnings.extend(markers)
     bound = bool(markers) or bindings is not None

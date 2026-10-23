@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.research-audit.v1"
+    },
+    "evidence_sha256": {
+      "type": "string",
+      "minLength": 1
+    },
+    "analysis_sha256": {
+      "type": "string",
+      "minLength": 1
+    },
+    "members": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "minLength": 1
+          },
+          "document": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "sha256",
+          "document"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "evidence_sha256",
+    "analysis_sha256",
+    "members"
+  ],
+  "additionalProperties": false
+}

@@ -17,6 +17,8 @@ def schema_path(kind: str) -> Path:
         "briefing",
         "review",
         "research",
+        "research-state",
+        "research-audit",
         "intel-context",
         "weekly-evidence",
         "weekly-analysis",

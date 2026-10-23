@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .contracts import aware_time, load_document, validate_document
 from .numeric_bindings import load_bindings
+from .research_audit import load_audit, verify_audit
 from .validate import validate_draft
 
 
@@ -24,11 +25,13 @@ def verify_review(review: dict, evidence: Path, analysis: Path, briefing: Path) 
         raise ValueError("Source review has a different report date")
     if aware_time(review["reviewed_at"]) < aware_time(brief["generated_at"]):
         raise ValueError("Review predates final briefing")
+    verify_audit(Path(briefing).parent, brief, evidence_data, analysis_data)
     result = validate_draft(
         evidence_data,
         analysis_data,
         brief,
         bindings=load_bindings(Path(briefing).parent),
+        audit=load_audit(Path(briefing).parent),
     )
     if result["errors"] or brief["status"] != "validated_draft":
         raise ValueError("Source review cannot approve an invalid draft")
