@@ -19,6 +19,7 @@ def schema_path(kind: str) -> Path:
         "research",
         "research-state",
         "research-audit",
+        "comparison-input",
         "intel-context",
         "weekly-evidence",
         "weekly-analysis",
@@ -45,7 +46,7 @@ def _unique(items: list[dict], key: str) -> None:
 
 
 def validate_document(payload: dict, kind: str) -> None:
-    schema = json.loads(schema_path(kind).read_text(encoding="utf-8"))
+    schema = resolved_schema(schema_path(kind))
     errors = list(Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(payload))
     if errors:
         raise ValueError(f"{kind}: {errors[0].message}")
@@ -94,6 +95,32 @@ def validate_document(payload: dict, kind: str) -> None:
             raise ValueError("brief_text differs from paragraphs")
     elif kind == "review":
         _unique(payload["decisions"], "claim_id")
+
+
+def resolved_schema(path: Path) -> dict:
+    """Expand packaged references for local validation and provider schema output."""
+    root = path.parent.resolve()
+
+    def expand(value, stack=()):
+        if isinstance(value, list):
+            return [expand(item, stack) for item in value]
+        if not isinstance(value, dict):
+            return value
+        if "$ref" in value:
+            reference = value["$ref"]
+            if reference in stack:
+                raise ValueError("Cyclic schema reference")
+            filename, _, fragment = reference.partition("#")
+            target = (root / filename).resolve()
+            if target.parent != root or not filename.endswith(".json"):
+                raise ValueError("Schema reference must be packaged and local")
+            document = json.loads(target.read_text(encoding="utf-8"))
+            for key in fragment.strip("/").split("/") if fragment.strip("/") else []:
+                document = document[key.replace("~1", "/").replace("~0", "~")]
+            return expand(document, (*stack, reference))
+        return {key: expand(item, stack) for key, item in value.items()}
+
+    return expand(json.loads(path.read_text(encoding="utf-8")))
 
 
 def load_document(path: Path, kind: str) -> dict:

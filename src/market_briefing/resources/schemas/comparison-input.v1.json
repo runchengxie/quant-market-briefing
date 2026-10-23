@@ -1,0 +1,155 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.comparison-input.v1"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "evidence.v1.json#/properties/sources/items"
+      }
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "series_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "instrument": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "provider": {
+            "type": "string",
+            "minLength": 1
+          },
+          "adjustment": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reference_period": {
+            "type": "string",
+            "minLength": 1
+          },
+          "unit": {
+            "enum": [
+              "percentage_points",
+              "percent",
+              "basis_points",
+              "count",
+              "usd",
+              "ratio",
+              "index_level"
+            ]
+          },
+          "contract": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "value": {
+            "type": "number"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "known_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verification": {
+            "enum": [
+              "verified",
+              "unverified"
+            ]
+          },
+          "classification": {
+            "enum": [
+              "actual",
+              "estimate"
+            ]
+          },
+          "endpoint_status": {
+            "enum": [
+              "complete",
+              "lagged"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "series_id",
+          "instrument",
+          "metric",
+          "provider",
+          "adjustment",
+          "source_id",
+          "reference_period",
+          "unit",
+          "contract",
+          "value",
+          "observed_at",
+          "known_at",
+          "verification",
+          "classification",
+          "endpoint_status"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "start_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "end_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "method": {
+            "enum": [
+              "return",
+              "yield_change",
+              "absolute_change"
+            ]
+          }
+        },
+        "required": [
+          "start_id",
+          "end_id",
+          "method"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "sources",
+    "endpoints",
+    "requests"
+  ],
+  "additionalProperties": false
+}

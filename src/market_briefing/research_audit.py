@@ -70,6 +70,22 @@ def verify_record(record: dict, briefing: dict, evidence: dict, analysis: dict) 
     docs = {name: item["document"] for name, item in members.items()}
     prior = docs["prior-inventory.json"]
     state = docs["research-state.json"]
+    if "comparison-input.json" in docs or "comparisons.json" in docs:
+        from .comparisons import (
+            calculate_comparisons,
+            merge_comparisons,
+            validate_comparison_claims,
+        )
+
+        calculated = calculate_comparisons(
+            docs["comparison-input.json"], evidence["evidence_cutoff"]
+        )
+        if (
+            calculated != docs["comparisons.json"]
+            or merge_comparisons(evidence, calculated) != evidence
+        ):
+            raise ValueError("Derived research evidence changed")
+        validate_comparison_claims(analysis, calculated)
     validate_state(state, analysis, evidence, prior)
     if docs["continuity.json"] != build_continuity(prior, state):
         raise ValueError("Changed research continuity")

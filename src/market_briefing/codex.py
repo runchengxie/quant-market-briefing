@@ -12,6 +12,7 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from .contracts import resolved_schema
 from .storage import write_atomic
 
 
@@ -54,7 +55,7 @@ def execute_stage(
     output.parent.mkdir(parents=True, exist_ok=True)
     invocation_id = uuid.uuid4().hex
     raw = output.parent / f".{output.name}.{invocation_id}.raw.json"
-    schema_data = json.loads(schema.read_text(encoding="utf-8"))
+    schema_data = resolved_schema(schema)
     provider_schema = output.parent / f".{output.name}.{invocation_id}.schema.json"
     command = [
         *(command_prefix or ["codex"]),
