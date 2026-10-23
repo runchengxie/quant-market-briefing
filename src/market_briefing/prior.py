@@ -57,6 +57,8 @@ def load_prior(run_dir: Path | None, market_date: str, cutoff: datetime) -> dict
     if aware_time(evidence["evidence_cutoff"]) >= cutoff:
         raise ValueError("Prior cutoff must progress forward")
     audit = documents.get("research-audit")
+    if "research-state" in documents and audit is None:
+        raise ValueError("Prior structured state requires a binding research audit")
     if audit:
         from .research_audit import verify_audit
 

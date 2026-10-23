@@ -11,17 +11,19 @@ from pathlib import Path
 
 from filelock import Timeout
 
-from .analysis import analyze
 from .calendar import select_session
+from .comparisons import calculate_comparisons, load_comparison_input, merge_comparisons
 from .context import load_context
 from .contracts import aware_time, load_document
 from .editor import edit
-from .numeric_bindings import load_bindings
+from .numeric_bindings import digest, load_bindings
+from .prior import freeze_prior, load_prior
 from .publication import build_bundle
-from .research import research
-from .research_audit import load_audit, verify_audit
+from .research_audit import audit_marker, load_audit, verify_audit, write_audit
 from .review import file_hash
 from .storage import allocate_revision, assert_external_path, date_lock, write_atomic
+from .structured import analyze_structured as analyze
+from .structured import research_structured as research
 from .validate import validate_draft
 
 
@@ -60,6 +62,8 @@ def parser() -> argparse.ArgumentParser:
         )
         command.add_argument("--research-depth", choices=["standard", "deep"], default="deep")
         command.add_argument("--timeout-seconds", type=float, default=1200)
+        command.add_argument("--previous-run", type=Path)
+        command.add_argument("--comparison-input", type=Path)
     edit_command = commands.add_parser("edit")
     edit_command.add_argument("--run-dir", type=Path, required=True)
     edit_command.add_argument("--editor-model")
@@ -72,6 +76,26 @@ def parser() -> argparse.ArgumentParser:
     bundle.add_argument("--review", type=Path, required=True)
     bundle.add_argument("--producer-commit", required=True)
     bundle.add_argument("--audience", choices=["internal", "public"], default="internal")
+    evaluation = commands.add_parser("evaluate")
+    evaluation.add_argument("--tasks", type=Path, required=True)
+    evaluation.add_argument("--out-dir", type=Path, required=True)
+    evaluation.add_argument("--live", action="store_true")
+    for role, model, effort in [
+        ("analyst", "gpt-6-astra", "xhigh"),
+        ("reviewer", "gpt-6-astra", "high"),
+        ("editor", "gpt-6.1-sol", "medium"),
+    ]:
+        evaluation.add_argument("--" + role + "-model", default=model)
+        evaluation.add_argument(
+            "--" + role + "-effort",
+            choices=["low", "medium", "high", "xhigh", "max"],
+            default=effort,
+        )
+    evaluation.add_argument("--timeout-seconds", type=float, default=1200)
+    grades = commands.add_parser("evaluation-grades")
+    grades.add_argument("--run-dir", type=Path, required=True)
+    grades.add_argument("--out-dir", type=Path, required=True)
+    grades.add_argument("--seed", type=int, default=42)
     from .weekly.cli import register_commands
 
     register_commands(commands)
@@ -109,6 +133,8 @@ def _config(args, run_dir: Path, revision: int, market_date: str, command_prefix
 
 
 def _finish_editor(evidence: dict, analysis: dict, config: dict) -> int:
+    if config.get("research_audit_required") and load_audit(config["run_dir"]) is None:
+        raise ValueError("Structured run is missing research audit")
     brief = edit(analysis, evidence, config)
     write_atomic(config["run_dir"] / "briefing.json", brief)
     _print(
@@ -142,9 +168,20 @@ def _generate(args, command_prefix, now: datetime) -> int:
     imported_context = None
     if getattr(args, "context", None) is not None:
         imported_context = load_context(args.context, session, now)
+    cutoff = now if args.command == "research" else aware_time(evidence["evidence_cutoff"])
+    prior = load_prior(args.previous_run, session["market_date"], cutoff)
+    comparison_input = load_comparison_input(args.comparison_input, cutoff)
+    if evidence is not None:
+        evidence = merge_comparisons(evidence, calculate_comparisons(comparison_input, cutoff))
     with date_lock(args.data_root, session["market_date"]):
         run_dir, revision = allocate_revision(args.data_root, session["market_date"])
         config = _config(args, run_dir, revision, session["market_date"], command_prefix)
+        config.update(
+            prior=freeze_prior(prior, run_dir),
+            comparison_input=comparison_input,
+            research_audit_required=True,
+        )
+        write_atomic(run_dir / "comparison-input.json", comparison_input)
         if imported_context is not None:
             write_atomic(run_dir / "research-context.json", imported_context)
             config["research_context"] = imported_context
@@ -166,6 +203,9 @@ def _generate(args, command_prefix, now: datetime) -> int:
                 else evidence["evidence_cutoff"],
                 "input_mode": "web_research" if args.command == "research" else "frozen_evidence",
                 "resource_hashes": resource_hashes(),
+                "research_audit_required": True,
+                "prior_sha256": digest(config["prior"]),
+                "comparison_input_sha256": digest(comparison_input),
                 "analyst_model": config["analyst_model"],
                 "editor_model": config["editor_model"],
                 **context_metadata,
@@ -183,10 +223,10 @@ def _generate(args, command_prefix, now: datetime) -> int:
         )
         try:
             if args.command == "research":
-                evidence, analysis = research(session, now, config)
+                evidence, analysis, members = research(session, now, config)
             else:
                 write_atomic(run_dir / "evidence.json", evidence)
-                analysis = analyze(evidence, config)
+                analysis, members = analyze(evidence, config)
             if args.command == "research":
                 write_atomic(run_dir / "evidence.json", evidence)
         except (ValueError, RuntimeError, OSError) as exc:
@@ -214,10 +254,14 @@ def _generate(args, command_prefix, now: datetime) -> int:
                 )
             },
             "resource_hashes": resource_hashes(),
+            "research_audit_required": True,
+            "prior_sha256": digest(config["prior"]),
+            "comparison_input_sha256": digest(comparison_input),
         }
         write_atomic(run_dir / "run.json", fingerprint)
         try:
             write_atomic(run_dir / "analysis.json", analysis)
+            write_audit(run_dir, members)
             if args.command == "analyze":
                 _print({"status": "analysis_ready", "run_dir": str(run_dir)})
                 return 0
@@ -255,6 +299,21 @@ def _existing(args, command_prefix) -> int:
             config = _config(
                 args, run_dir, metadata["revision"], evidence["market_date"], command_prefix
             )
+            config["research_audit_required"] = metadata.get("research_audit_required", False)
+            audit = load_audit(run_dir)
+            if config["research_audit_required"] and audit is None:
+                raise ValueError("Structured run is missing research audit")
+            if audit is not None:
+                verify_audit(
+                    run_dir, {"quality": {"warnings": [audit_marker(audit)]}}, evidence, analysis
+                )
+                docs = {k: v["document"] for k, v in audit["members"].items()}
+                if metadata.get("prior_sha256") != digest(
+                    docs["prior-inventory.json"]
+                ) or metadata.get("comparison_input_sha256") != digest(
+                    docs["comparison-input.json"]
+                ):
+                    raise ValueError("Frozen research inputs changed")
             if config["run_id"] != metadata["run_id"]:
                 raise ValueError("Run identity mismatch")
             return _finish_editor(evidence, analysis, config)
@@ -283,6 +342,36 @@ def main(
 ) -> int:
     args = parser().parse_args(argv)
     try:
+        if args.command == "evaluate":
+            from .evaluation.runner import evaluate
+            from .evaluation.tasks import load_tasks
+
+            config = {
+                k: getattr(args, k)
+                for k in [
+                    "analyst_model",
+                    "analyst_effort",
+                    "reviewer_model",
+                    "reviewer_effort",
+                    "editor_model",
+                    "editor_effort",
+                    "timeout_seconds",
+                ]
+            }
+            config["command_prefix"] = command_prefix
+            if args.timeout_seconds <= 0:
+                raise ValueError("timeout_seconds must be positive")
+            _print(
+                evaluate(load_tasks(args.tasks), args.out_dir, live=args.live, model_config=config)
+            )
+            return 0
+        if args.command == "evaluation-grades":
+            from .artifacts import read_bounded
+            from .evaluation.grading import export_grading
+
+            records = read_bounded(args.run_dir / "attempts.json", args.run_dir)[0]
+            _print(export_grading(records["attempts"], args.out_dir, args.seed))
+            return 0
         if args.command.startswith("weekly-"):
             from .weekly.cli import dispatch
 

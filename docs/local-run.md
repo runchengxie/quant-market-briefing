@@ -55,3 +55,5 @@ The bundle contains frozen evidence, analysis, unchanged final draft, review and
 --date today selects the current New York calendar date. A nontrading day returns skipped and never silently republishes Friday. A pre-close invocation fails. Early closes and daylight saving changes come from exchange-calendars/XNYS.
 
 An explicit historical session can be replayed, retaining the actual evidence_cutoff and collection time. This is not a historical data-vintage reconstruction. Data collected after that historical close must not be described as available at the original close.
+
+For frozen prior runs, comparable endpoint inputs and audit sidecars, see [Research continuity](research-continuity.md). For offline experiments and blinded grading exports, see [Evaluation](evaluation.md).

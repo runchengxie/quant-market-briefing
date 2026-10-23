@@ -92,6 +92,11 @@ def validate_draft(
             if audit is None:
                 raise ValueError("Missing research audit")
             verify_record(audit, briefing, evidence, analysis)
+            long_term = audit["members"]["research-state.json"]["document"]["long_term"]
+            if long_term["assessment_status"] == "insufficient":
+                raise ValueError(
+                    "Public v1 thesis cannot publish an unassessable long-term view; retain a draft"
+                )
         except (ValueError, KeyError, TypeError) as exc:
             errors.append(str(exc))
             quality["evidence_links_passed"] = False

@@ -94,3 +94,10 @@ def test_derived_provenance_and_collision_safe_merge(comparison_input, evidence)
     ids = {o["id"] for o in merged["observations"]}
     assert set(result["results"][0]["evidence_ids"]) <= ids
     assert result["results"][0]["id"] in ids
+
+
+def test_extreme_finite_arithmetic_has_controlled_error(comparison_input):
+    comparison_input["endpoints"][0]["value"] = 1e-300
+    comparison_input["endpoints"][1]["value"] = 1e300
+    with pytest.raises(ValueError, match="range"):
+        calculate_comparisons(comparison_input, "2026-10-02T22:00:00Z")

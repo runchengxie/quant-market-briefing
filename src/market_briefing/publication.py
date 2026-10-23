@@ -15,6 +15,8 @@ from .storage import write_atomic
 
 
 def build_bundle(run_dir: Path, review_path: Path, producer_commit: str, audience: str) -> Path:
+    if (Path(run_dir) / "evaluation-only.json").exists():
+        raise ValueError("Evaluation artifacts cannot be published")
     if not re.fullmatch(r"[0-9a-f]{40}", producer_commit):
         raise ValueError("producer_commit must be a full Git SHA")
     if audience not in {"internal", "public"}:

@@ -152,7 +152,14 @@ def test_invalid_context_never_starts_research(tmp_path, context_document, monke
 
 
 def test_context_frozen_before_research(
-    tmp_path, context_document, evidence, analysis, monkeypatch, capsys
+    tmp_path,
+    context_document,
+    evidence,
+    analysis,
+    research_state,
+    research_questions,
+    monkeypatch,
+    capsys,
 ):
     def fake_research(session, cutoff, config):
         saved = json.loads(
@@ -160,7 +167,16 @@ def test_context_frozen_before_research(
         )
         assert saved == config["research_context"]
         assert saved["document"] == context_document
-        return copy.deepcopy(evidence), copy.deepcopy(analysis)
+        from market_briefing.structured import analyze_structured
+
+        monkeypatch.setattr(
+            "market_briefing.structured.execute_stage",
+            lambda *a, **kw: copy.deepcopy(
+                {"analysis": analysis, "state": research_state, "questions": research_questions}
+            ),
+        )
+        a, members = analyze_structured(evidence, config)
+        return copy.deepcopy(evidence), a, members
 
     monkeypatch.setattr("market_briefing.cli.research", fake_research)
     monkeypatch.setattr("market_briefing.cli._finish_editor", lambda *args: 0)

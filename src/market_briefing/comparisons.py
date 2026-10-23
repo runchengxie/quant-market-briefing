@@ -1,6 +1,7 @@
 """Daily endpoint arithmetic with explicit identity and provenance."""
 
 import copy
+import math
 from decimal import Decimal
 from pathlib import Path
 
@@ -79,11 +80,17 @@ def calculate_comparisons(payload: dict, cutoff) -> dict:
             value, formula = b - a, "end-start"
             if unit == "percent":
                 unit = "percentage_points"
+        try:
+            rounded_value = float(value.quantize(Decimal("0.0001")))
+        except ArithmeticError as exc:
+            raise ValueError("Comparison result outside supported arithmetic range") from exc
+        if not math.isfinite(rounded_value):
+            raise ValueError("Comparison result outside supported arithmetic range")
         results.append(
             {
                 "id": prefix + "derived-" + digest(request)[:16],
                 "metric": start["metric"] + "_" + method,
-                "value": float(value.quantize(Decimal("0.0001"))),
+                "value": rounded_value,
                 "unit": unit,
                 "method": method,
                 "formula": formula,

@@ -36,3 +36,25 @@ def test_foreign_audit_member_rejected(tmp_path, evidence, analysis):
         write_atomic(tmp_path / f"{name}.json", doc)
     with pytest.raises(ValueError):
         write_audit(tmp_path, {"../foreign.json": copy.deepcopy(analysis)})
+
+
+def test_public_v1_cannot_publish_unassessable_long_term(
+    tmp_path, evidence, analysis, editor_output, research_state
+):
+    for name, doc in [("evidence", evidence), ("analysis", analysis)]:
+        write_atomic(tmp_path / f"{name}.json", doc)
+    prior = freeze_prior(load_prior(None, evidence["market_date"], None), tmp_path)
+    research_state["long_term"].update(
+        assessment_status="insufficient", direction=None, confidence=None, gap="缺少盈利覆盖"
+    )
+    audit = write_audit(
+        tmp_path,
+        {
+            "prior-inventory.json": prior,
+            "research-state.json": research_state,
+            "continuity.json": build_continuity(prior, research_state),
+        },
+    )
+    brief = assemble_briefing(editor_output, evidence, analysis, "run", 1, audit=audit)
+    assert brief["status"] == "draft"
+    assert brief["quality"]["errors"]

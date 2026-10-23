@@ -1,6 +1,6 @@
 # Daily Research Continuity Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add auditable daily research continuity, comparable historical calculations, evidence acceptance and frozen-input evaluation to the local briefing producer.
 
@@ -54,13 +54,13 @@ State has `short_term` (`1-4w`) and `long_term` (`6-12m`). Each holds `assessmen
 
 Condition IDs are a code-derived digest of origin identity and frozen text. Prior condition assessments are `observed|not_observed|unresolved|retired`; observations reference current evidence, and `not_observed` additionally needs explicit window/coverage. Unknown IDs, missing prior-condition assessments or reuse of an ID with changed text fail. Legacy prior material preserves text but has no inferred short-term direction. Changes are separate booleans/labels for direction and confidence, plus `became_assessable`, `became_insufficient`, `unchanged` or `unavailable`.
 
-- [ ] **1.1 Write failing import/integrity tests.** `test_prior_cutoff_includes_generation_and_review_time` asserts rejection when prior generation/review is after cutoff despite an earlier market date. `test_legacy_prior_has_no_inferred_short_term` asserts unavailable. `test_invalid_supplied_prior_never_starts_model` asserts no stage invocation; no-prior input returns absent.
-- [ ] **1.2 Run red tests.** `python -m pytest tests/test_prior.py tests/test_research_state.py tests/test_research_audit.py -q`; expect missing interfaces or failed assertions.
-- [ ] **1.3 Implement prior/state validation and freezing.** Verify existing briefing findings and numeric bindings, source-review hashes when supplied, date/cutoff order and hashes of read bytes. Never reopen untrusted original paths after freezing to supply a model. Add changed-read, duplicate-key, size and symlink fixtures.
-- [ ] **1.4 Write state/continuity tests.** `test_condition_absence_is_unresolved`, `test_unknown_condition_identity_rejected`, `test_available_long_term_matches_thesis`, `test_insufficient_is_not_neutral` and a two-date supported direction/confidence transition; assert current claims/evidence and original condition text are retained.
-- [ ] **1.5 Implement deterministic continuity and audit checks.** The marker binds all required members; verify recomputes state/continuity and refuses missing/changed sidecars. Missing marker plus present new audit is invalid. Legacy runs with neither preserve existing validation. Bundle copies supporting files and revalidates their staged copies.
-- [ ] **1.6 Run green tests and legacy regressions.** Include `tests/test_numeric_bindings.py`, `tests/test_publication.py`, `tests/weekly/test_context.py`; test marked bundles fail when one member is removed or tampered with and resumed editing rejects changed frozen prior bytes.
-- [ ] **1.7 Commit the increment.** `git add` only owned files; commit `feat: add frozen prior research and daily continuity`.
+- [x] **1.1 Write failing import/integrity tests.** `test_prior_cutoff_includes_generation_and_review_time` asserts rejection when prior generation/review is after cutoff despite an earlier market date. `test_legacy_prior_has_no_inferred_short_term` asserts unavailable. `test_invalid_supplied_prior_never_starts_model` asserts no stage invocation; no-prior input returns absent.
+- [x] **1.2 Run red tests.** `python -m pytest tests/test_prior.py tests/test_research_state.py tests/test_research_audit.py -q`; expect missing interfaces or failed assertions.
+- [x] **1.3 Implement prior/state validation and freezing.** Verify existing briefing findings and numeric bindings, source-review hashes when supplied, date/cutoff order and hashes of read bytes. Never reopen untrusted original paths after freezing to supply a model. Add changed-read, duplicate-key, size and symlink fixtures.
+- [x] **1.4 Write state/continuity tests.** `test_condition_absence_is_unresolved`, `test_unknown_condition_identity_rejected`, `test_available_long_term_matches_thesis`, `test_insufficient_is_not_neutral` and a two-date supported direction/confidence transition; assert current claims/evidence and original condition text are retained.
+- [x] **1.5 Implement deterministic continuity and audit checks.** The marker binds all required members; verify recomputes state/continuity and refuses missing/changed sidecars. Missing marker plus present new audit is invalid. Legacy runs with neither preserve existing validation. Bundle copies supporting files and revalidates their staged copies.
+- [x] **1.6 Run green tests and legacy regressions.** Include `tests/test_numeric_bindings.py`, `tests/test_publication.py`, `tests/weekly/test_context.py`; test marked bundles fail when one member is removed or tampered with and resumed editing rejects changed frozen prior bytes.
+- [x] **1.7 Commit the increment.** `git add` only owned files; commit `feat: add frozen prior research and daily continuity`.
 
 ### Task 2: Calculate comparable historical observations
 
@@ -75,12 +75,12 @@ Input `market.comparison-input.v1` holds sources, endpoints and `{start_id,end_i
 
 Use Decimal with a declared four-decimal output precision: `return=(end/start-1)*100` for positive price levels in `usd|index_level|ratio`; `yield_change=(end-start)*100` basis points from percent yields; `absolute_change=end-start` in the original unit except percent levels produce percentage points. Zero/nonpositive prices are invalid for returns. Retain raw endpoint values and never convert a percentage-return series into a level series. Missing endpoints yield diagnostics, not fabricated results; malformed identities or incompatible present endpoints fail.
 
-- [ ] **2.1 Write failing arithmetic tests.** Assert 100→110 gives 10 percent; percent yield 4.0→4.25 gives 25 basis points; percent level 1→3 gives 2 percentage points. Parametrize reversed times, non-finite/estimate inputs and mismatched identity/provider/contract/adjustment with rejection assertions.
-- [ ] **2.2 Run red tests.** `python -m pytest tests/test_daily_comparisons.py -q`; expect unavailable functions or failed behavior.
-- [ ] **2.3 Implement endpoint loading/arithmetic/provenance.** Preserve both endpoint source references and deterministic IDs; claims using derived observations must also retain endpoint references. Bind calculation inputs/results in research audit and recompute before numeric rendering or bundling.
-- [ ] **2.4 Add missing/stale/integrity tests.** `test_missing_endpoint_is_not_zero`, `test_lagged_endpoint_stays_visible`, `test_changed_basis_blocks_delta`, `test_derived_observation_requires_both_endpoint_refs` and `test_changed_formula_breaks_audit` assert the named behavior. Ensure same literal evidence IDs from different inputs are namespaced deterministically.
-- [ ] **2.5 Run green and weekly comparison regressions.** `python -m pytest tests/test_daily_comparisons.py tests/test_numeric_bindings.py tests/weekly/test_contracts_comparisons.py -q`.
-- [ ] **2.6 Commit.** `feat: calculate comparable daily research evidence`.
+- [x] **2.1 Write failing arithmetic tests.** Assert 100→110 gives 10 percent; percent yield 4.0→4.25 gives 25 basis points; percent level 1→3 gives 2 percentage points. Parametrize reversed times, non-finite/estimate inputs and mismatched identity/provider/contract/adjustment with rejection assertions.
+- [x] **2.2 Run red tests.** `python -m pytest tests/test_daily_comparisons.py -q`; expect unavailable functions or failed behavior.
+- [x] **2.3 Implement endpoint loading/arithmetic/provenance.** Preserve both endpoint source references and deterministic IDs; claims using derived observations must also retain endpoint references. Bind calculation inputs/results in research audit and recompute before numeric rendering or bundling.
+- [x] **2.4 Add missing/stale/integrity tests.** `test_missing_endpoint_is_not_zero`, `test_lagged_endpoint_stays_visible`, `test_changed_basis_blocks_delta`, `test_derived_observation_requires_both_endpoint_refs` and `test_changed_formula_breaks_audit` assert the named behavior. Ensure same literal evidence IDs from different inputs are namespaced deterministically.
+- [x] **2.5 Run green and weekly comparison regressions.** `python -m pytest tests/test_daily_comparisons.py tests/test_numeric_bindings.py tests/weekly/test_contracts_comparisons.py -q`.
+- [x] **2.6 Commit.** `feat: calculate comparable daily research evidence`.
 
 ### Task 3: Integrate structured research, evidence gates and bounded repair
 
@@ -96,13 +96,13 @@ Questions contain 2–3 unique IDs with relevance, dependent `short_term|long_te
 
 Default structured live flow: initial research → optional deep challenge with reconciled IDs → deterministic gates → at most one corrective model invocation → revalidation → frozen audit → editor. There is no correction when findings are empty. Existing per-stage timeouts apply; failure/timeout of correction remains an auditable failed attempt and cannot publish a passing state. Freeze each raw candidate/findings before retry. No repair may change the original requirements or discard failed history. Evidence insufficiency may yield a valid explicitly insufficient state; integrity failures remain errors.
 
-- [ ] **3.1 Write failing gate/repair tests.** `test_two_endpoints_required`, `test_classification_mismatch_rejected`, `test_missing_evidence_only_blocks_dependent_horizon`, `test_repair_cannot_weaken_original_requirements`, `test_repair_attempt_limit_is_one` and `test_failed_repair_preserves_previous_findings` assert exact statuses/call counts.
-- [ ] **3.2 Run red tests.** `python -m pytest tests/test_evidence_gates.py tests/test_structured_research.py -q`.
-- [ ] **3.3 Implement schemas, deterministic gates and stage orchestration.** Retain original live search requirements for research/challenge; frozen analysis/editing disable search. Reconcile changed evidence IDs into state/question references as well as analysis claims. Use JSON runtime records, not mutable shared flags.
-- [ ] **3.4 Wire CLI defaults and resumption.** Add `--previous-run PATH` and `--comparison-input FILE` to daily research/analyze/run. Load/freeze before model execution; record audit mode and input hashes in request/run. New generation always uses structured stages even without prior inputs. Archived validate/bundle paths remain version-aware; old `edit` revisions with changed prompt/schema resources still require a new revision.
-- [ ] **3.5 Update editor context and marker verification.** Editor receives frozen state/continuity and linked current facts, preserves insufficient status without inventing direction, and still uses numeric tokens. It cannot turn prior prose into a new numeric observation. Audit projection validates agreement with available long-term public thesis. Include an absence/gap explanation when state cannot be expressed faithfully.
-- [ ] **3.6 Run integration tests with fake model executables only.** Full two-date pipeline, absent/legacy prior, standard/deep paths, new-state ID reconciliation, malformed output, future data, timeout, changed dependency on resume and missing-sidecar bundle refusal. Confirm final evidence/analysis/briefing validate against unchanged public contracts and source approval remains false.
-- [ ] **3.7 Run focused existing daily/weekly regressions and commit.** `feat: enforce evidence gates in structured daily research`.
+- [x] **3.1 Write failing gate/repair tests.** `test_two_endpoints_required`, `test_classification_mismatch_rejected`, `test_missing_evidence_only_blocks_dependent_horizon`, `test_repair_cannot_weaken_original_requirements`, `test_repair_attempt_limit_is_one` and `test_failed_repair_preserves_previous_findings` assert exact statuses/call counts.
+- [x] **3.2 Run red tests.** `python -m pytest tests/test_evidence_gates.py tests/test_structured_research.py -q`.
+- [x] **3.3 Implement schemas, deterministic gates and stage orchestration.** Retain original live search requirements for research/challenge; frozen analysis/editing disable search. Reconcile changed evidence IDs into state/question references as well as analysis claims. Use JSON runtime records, not mutable shared flags.
+- [x] **3.4 Wire CLI defaults and resumption.** Add `--previous-run PATH` and `--comparison-input FILE` to daily research/analyze/run. Load/freeze before model execution; record audit mode and input hashes in request/run. New generation always uses structured stages even without prior inputs. Archived validate/bundle paths remain version-aware; old `edit` revisions with changed prompt/schema resources still require a new revision.
+- [x] **3.5 Update editor context and marker verification.** Editor receives frozen state/continuity and linked current facts, preserves insufficient status without inventing direction, and still uses numeric tokens. It cannot turn prior prose into a new numeric observation. Audit projection validates agreement with available long-term public thesis. Include an absence/gap explanation when state cannot be expressed faithfully.
+- [x] **3.6 Run integration tests with fake model executables only.** Full two-date pipeline, absent/legacy prior, standard/deep paths, new-state ID reconciliation, malformed output, future data, timeout, changed dependency on resume and missing-sidecar bundle refusal. Confirm final evidence/analysis/briefing validate against unchanged public contracts and source approval remains false.
+- [x] **3.7 Run focused existing daily/weekly regressions and commit.** `feat: enforce evidence gates in structured daily research`.
 
 ### Task 4: Evaluate frozen research with honest denominators
 
@@ -120,21 +120,23 @@ Experiment kinds: `counterfactual`, `repeat`, `paired`, `failure`. Counterfactua
 
 Manifest records source commit plus working-tree digest, packaged prompt/schema digests, input/task hashes, model/effort, actual stage/search mode, experiment parameters and timestamps. Raw attempts and frozen task copies remain inspectable. Summaries contain n/N, missing/unassessable fields and actual durations. No predictive-accuracy/significance/optimal-budget claim is computed from synthetic fixtures. A common numeric fingerprint does not establish source truth or language quality.
 
-- [ ] **4.1 Write failing task/runner tests.** Reject duplicate IDs, invalid kinds, path escapes and pre-existing output directories. `test_default_evaluate_never_invokes_model` asserts no executable/call; `test_counterfactual_changes_only_target_quantity` asserts cloned inputs and unaffected quantities.
-- [ ] **4.2 Run red tests.** `python -m pytest tests/test_evaluation_tasks.py tests/test_evaluation_runner.py tests/test_evaluation_metrics.py -q`.
-- [ ] **4.3 Implement loader, isolated runner and summaries.** Reuse producer validation/rendering APIs. The evaluation artifact kind is never accepted by bundle/review. Save failure records before aggregating; elapsed timers measure execution, not invented queue latency.
-- [ ] **4.4 Add denominator/pairing/grade tests.** `test_failed_repeats_are_not_invariant`, `test_missing_structured_state_is_unassessable`, `test_live_challenge_final_evidence_difference_visible`, `test_no_human_labels_yields_null_metrics`, `test_grade_source_key_is_separate`, `test_production_binding_is_unchanged_after_legacy_experiment` and raw-output tampering rejection.
-- [ ] **4.5 Add CLI fake-process tests and docs.** Exercise offline counterfactual/repeat/paired/failure cases, an explicitly invoked fake live stage, immutable output and grade export. Document limitations and commands in `docs/research-continuity.md` and `docs/evaluation.md`; link both from README and local-run docs.
-- [ ] **4.6 Run green tests and commit.** `feat: evaluate frozen daily research and export paired grades`.
+- [x] **4.1 Write failing task/runner tests.** Reject duplicate IDs, invalid kinds, path escapes and pre-existing output directories. `test_default_evaluate_never_invokes_model` asserts no executable/call; `test_counterfactual_changes_only_target_quantity` asserts cloned inputs and unaffected quantities.
+- [x] **4.2 Run red tests.** `python -m pytest tests/test_evaluation_tasks.py tests/test_evaluation_runner.py tests/test_evaluation_metrics.py -q`.
+- [x] **4.3 Implement loader, isolated runner and summaries.** Reuse producer validation/rendering APIs. The evaluation artifact kind is never accepted by bundle/review. Save failure records before aggregating; elapsed timers measure execution, not invented queue latency.
+- [x] **4.4 Add denominator/pairing/grade tests.** `test_failed_repeats_are_not_invariant`, `test_missing_structured_state_is_unassessable`, `test_live_challenge_final_evidence_difference_visible`, `test_no_human_labels_yields_null_metrics`, `test_grade_source_key_is_separate`, `test_production_binding_is_unchanged_after_legacy_experiment` and raw-output tampering rejection.
+- [x] **4.5 Add CLI fake-process tests and docs.** Exercise offline counterfactual/repeat/paired/failure cases, an explicitly invoked fake live stage, immutable output and grade export. Document limitations and commands in `docs/research-continuity.md` and `docs/evaluation.md`; link both from README and local-run docs.
+- [x] **4.6 Run green tests and commit.** `feat: evaluate frozen daily research and export paired grades`.
 
 ## Final verification and integration
 
-- [ ] Run full offline pytest with a unique basetemp under `DATA_ROOT/quant-market-briefing/checks/`; run Ruff lint/format and locked-environment wheel/source builds. Import the built wheel and read all new schemas/prompts from packaged resources.
-- [ ] Complete an independent whole-branch review; reproduce and fix important findings with tests before proceeding. Review semantic limits separately from fixable reference/integrity bugs.
-- [ ] Fetch/query current main, validate any combined changes and create a PR against the user's repository. Wait for six CI matrix jobs on the current result; never bypass required controls.
-- [ ] Merge under standing authorization, preserve public noreply commit identity, verify merged branch/CI and leave production untouched. Remove only this task's remote/local branch and worktree after confirming no unique unsaved work.
-- [ ] Report PR/commit, actual validation, remaining real-model/human-evaluation limits and cleanup outcome.
+- [x] Run full offline pytest with a unique basetemp under `DATA_ROOT/quant-market-briefing/checks/`; run Ruff lint/format and locked-environment wheel/source builds. Import the built wheel and read all new schemas/prompts from packaged resources.
+- [x] Complete an independent whole-branch review; reproduce and fix important findings with tests before proceeding. Review semantic limits separately from fixable reference/integrity bugs.
+- [x] Fetch/query current main, validate any combined changes and create a PR against the user's repository. Wait for six CI matrix jobs on the current result; never bypass required controls.
+- [x] Merge under standing authorization, preserve public noreply commit identity, verify merged branch/CI and leave production untouched. Remove only this task's remote/local branch and worktree after confirming no unique unsaved work.
+- [x] Report PR/commit, actual validation, remaining real-model/human-evaluation limits and cleanup outcome.
 
 ## Plan self-review
 
 All four spec deliverables map to Tasks 1–4; audit/storage/review obligations span each task and final integration. All five Review Focus cases have named tests in their owning tasks. Names/signatures and artifact filenames are shared consistently; new model contracts remain internal and existing public/weekly contracts are preserved. Explicit real-model research-quality evaluation and production activation are excluded. Execution method and this written plan require user review before implementation.
+
+Implementation and independent review completed. Integration checks and merged-result verification are recorded in the PR. Negative condition findings remain unresolved until verified interval completeness can be represented; point observations cannot establish absence.

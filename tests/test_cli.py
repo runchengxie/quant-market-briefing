@@ -16,19 +16,31 @@ def test_help(capsys):
 
 
 def test_pipeline_with_fake_model(
-    tmp_path, evidence, analysis, bound_editor_output, monkeypatch, capsys
+    tmp_path,
+    evidence,
+    analysis,
+    bound_editor_output,
+    research_state,
+    research_questions,
+    monkeypatch,
+    capsys,
 ):
     fake = tmp_path / "fake.py"
     analysis_file = tmp_path / "fake-analysis.json"
     editor_file = tmp_path / "fake-editor.json"
-    analysis_file.write_text(json.dumps(analysis), encoding="utf-8")
+    analysis_file.write_text(
+        json.dumps(
+            {"analysis": analysis, "state": research_state, "questions": research_questions}
+        ),
+        encoding="utf-8",
+    )
     editor_file.write_text(json.dumps(bound_editor_output), encoding="utf-8")
     fake.write_text(
         "import sys,json\nfrom pathlib import Path\n"
         "schema=sys.argv[sys.argv.index('--output-schema')+1]\n"
         "target=sys.argv[sys.argv.index('--output-last-message')+1]\n"
         "prompt=sys.stdin.buffer.read().decode('utf-8')\n"
-        f"source={str(analysis_file)!r} if 'claims' in json.loads(Path(schema).read_text())['properties'] else {str(editor_file)!r}\n"
+        f"source={str(analysis_file)!r} if 'analysis' in json.loads(Path(schema).read_text())['properties'] else {str(editor_file)!r}\n"
         "Path(target).write_bytes(Path(source).read_bytes())\n",
         encoding="utf-8",
     )

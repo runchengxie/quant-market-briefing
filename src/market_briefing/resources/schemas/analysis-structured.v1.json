@@ -1,0 +1,20 @@
+{
+  "type": "object",
+  "properties": {
+    "analysis": {
+      "$ref": "analysis.v1.json"
+    },
+    "state": {
+      "$ref": "research-state.v1.json"
+    },
+    "questions": {
+      "$ref": "research-questions.v1.json"
+    }
+  },
+  "required": [
+    "analysis",
+    "state",
+    "questions"
+  ],
+  "additionalProperties": false
+}

@@ -102,6 +102,9 @@ def execute_stage(
                 "timeout_seconds": timeout_seconds,
                 "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
                 "schema_sha256": hashlib.sha256(schema.read_bytes()).hexdigest(),
+                "resolved_schema_sha256": hashlib.sha256(
+                    json.dumps(schema_data, sort_keys=True, ensure_ascii=False).encode("utf-8")
+                ).hexdigest(),
                 "settings_provenance": "explicit CLI arguments; backend served model is not exposed",
             },
         )

@@ -2,7 +2,12 @@ import copy
 
 import pytest
 
-from market_briefing.research_state import build_continuity, condition_id, validate_state
+from market_briefing.research_state import (
+    build_continuity,
+    condition_id,
+    prepare_state,
+    validate_state,
+)
 
 
 @pytest.fixture
@@ -79,9 +84,75 @@ def test_conditions_require_coverage_and_explicit_identity(state, analysis, evid
         validate_state(state, analysis, evidence, prior)
 
 
+def test_projection_retains_analysis_conditions(state, analysis, evidence):
+    prepared = prepare_state(state, analysis, evidence, {"status": "absent"})
+    assert {c["text"] for c in prepared["long_term"]["conditions"]} >= set(
+        analysis["invalidation_conditions"]
+    )
+
+
+def test_observed_condition_cannot_cite_estimate(state, analysis, evidence):
+    key = condition_id("old", "盈利已实现下修")
+    prior = {"status": "available", "documents": {"research-state": copy.deepcopy(state)}}
+    prior["documents"]["research-state"]["short_term"]["conditions"] = [
+        {"id": key, "origin": "old", "text": "盈利已实现下修"}
+    ]
+    state["prior_conditions"] = [
+        {
+            "id": key,
+            "status": "observed",
+            "evidence_ids": ["e2"],
+            "window": None,
+            "explanation": "未来盈利预测",
+        }
+    ]
+    with pytest.raises(ValueError):
+        validate_state(state, analysis, evidence, prior)
+
+
+def test_prepare_does_not_overwrite_changed_prior_text(state, analysis, evidence):
+    key = condition_id("old", "旧条件")
+    prior = {"status": "available", "documents": {"research-state": copy.deepcopy(state)}}
+    prior["documents"]["research-state"]["short_term"]["conditions"] = [
+        {"id": key, "origin": "old", "text": "旧条件"}
+    ]
+    state["prior_conditions"] = [
+        {
+            "id": key,
+            "status": "unresolved",
+            "evidence_ids": [],
+            "window": None,
+            "explanation": "缺资料",
+            "text": "篡改条件",
+            "origin": "old",
+        }
+    ]
+    with pytest.raises(ValueError):
+        prepare_state(state, analysis, evidence, prior)
+
+
 def test_supported_two_date_change(state):
     old = copy.deepcopy(state)
     state["short_term"].update(direction="constructive", confidence="medium")
     result = build_continuity({"status": "available", "documents": {"research-state": old}}, state)
     assert result["short_term"]["direction_changed"]
     assert result["short_term"]["confidence_changed"]
+
+
+def test_negative_condition_requires_interval_coverage(state, analysis, evidence):
+    key = condition_id("old", "旧条件")
+    prior = {"status": "available", "documents": {"research-state": copy.deepcopy(state)}}
+    prior["documents"]["research-state"]["short_term"]["conditions"] = [
+        {"id": key, "origin": "old", "text": "旧条件"}
+    ]
+    state["prior_conditions"] = [
+        {
+            "id": key,
+            "status": "not_observed",
+            "evidence_ids": ["e1"],
+            "window": {"start": "2026-10-02T21:00:00Z", "end": "2026-10-02T22:00:00Z"},
+            "explanation": "仅有较早时点数据",
+        }
+    ]
+    with pytest.raises(ValueError, match="coverage"):
+        validate_state(state, analysis, evidence, prior)

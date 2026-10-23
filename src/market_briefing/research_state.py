@@ -37,6 +37,11 @@ def prior_conditions(prior: dict) -> dict:
 def prepare_state(state: dict, analysis: dict, evidence: dict, prior: dict) -> dict:
     result = copy.deepcopy(state)
     origin = evidence["market_date"] + ":" + digest(analysis)
+    represented = {c["text"] for h in HORIZONS for c in result[h]["conditions"]}
+    for text in analysis["invalidation_conditions"]:
+        if text not in represented:
+            result["long_term"]["conditions"].append({"id": "", "origin": "", "text": text})
+            represented.add(text)
     for horizon in HORIZONS:
         for condition in result[horizon]["conditions"]:
             if not condition.get("id") and not condition.get("origin"):
@@ -44,6 +49,11 @@ def prepare_state(state: dict, analysis: dict, evidence: dict, prior: dict) -> d
     known = prior_conditions(prior)
     for assessment in result["prior_conditions"]:
         if assessment["id"] in known:
+            if any(
+                k in assessment and assessment[k] != known[assessment["id"]][k]
+                for k in ["text", "origin"]
+            ):
+                raise ValueError("Changed historical condition")
             assessment.update(
                 text=known[assessment["id"]]["text"], origin=known[assessment["id"]]["origin"]
             )
@@ -105,8 +115,14 @@ def validate_state(state: dict, analysis: dict, evidence: dict, prior: dict) -> 
             raise ValueError("Unusable condition evidence")
         if item["status"] in {"observed", "not_observed"} and not keys:
             raise ValueError("Observed condition requires current evidence")
-        if item["status"] == "not_observed" and item["window"] is None:
-            raise ValueError("Negative observation requires coverage window")
+        if item["status"] in {"observed", "not_observed"} and any(
+            observations[k]["classification"] != "actual" for k in keys
+        ):
+            raise ValueError("Observed condition cannot use estimates as outcomes")
+        if item["status"] == "not_observed":
+            # Public evidence v1 records point observations, not interval completeness.
+            # A model-declared window cannot prove absence throughout that interval.
+            raise ValueError("Negative observation needs interval coverage; retain unresolved")
         if item["window"] is not None:
             start, end = (aware_time(item["window"][k]) for k in ["start", "end"])
             if not start < end <= aware_time(evidence["evidence_cutoff"]):

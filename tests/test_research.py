@@ -17,15 +17,27 @@ def test_original_framework_is_packaged():
 
 
 @pytest.mark.parametrize("search_event", [True, False])
-def test_web_research_and_editor(tmp_path, evidence, analysis, bound_editor_output, search_event):
+def test_web_research_and_editor(
+    tmp_path,
+    evidence,
+    analysis,
+    bound_editor_output,
+    research_state,
+    research_questions,
+    search_event,
+):
     payloads = tmp_path / "payloads.json"
     payloads.write_text(
         json.dumps(
             {
                 "research": {
-                    "sources": evidence["sources"],
-                    "observations": evidence["observations"],
-                    "analysis": analysis,
+                    "research": {
+                        "sources": evidence["sources"],
+                        "observations": evidence["observations"],
+                        "analysis": analysis,
+                    },
+                    "state": research_state,
+                    "questions": research_questions,
                 },
                 "editor": bound_editor_output,
             }
@@ -37,7 +49,7 @@ def test_web_research_and_editor(tmp_path, evidence, analysis, bound_editor_outp
         "import sys,json\nfrom pathlib import Path\n"
         "args=sys.argv\nprompt=sys.stdin.buffer.read().decode('utf-8')\n"
         "schema=json.loads(Path(args[args.index('--output-schema')+1]).read_text())\n"
-        "research='analysis' in schema['properties']\n"
+        "research='research' in schema['properties']\n"
         "assert ('web_search=\"live\"' if research else 'web_search=\"disabled\"') in args\n"
         "if research: assert '近期内部人交易' in prompt\n"
         f"data=json.loads(Path({str(payloads)!r}).read_text(encoding='utf-8'))\n"
@@ -58,6 +70,7 @@ def test_web_research_and_editor(tmp_path, evidence, analysis, bound_editor_outp
         assert brief["status"] == "validated_draft"
         assert brief["quality"]["source_audit_passed"] is False
         assert (run / "research.candidate.json").exists()
+        assert (run / "challenge.reconciliation.json").exists()
         assert json.loads((run / "run.json").read_text())["input_mode"] == "web_research"
     else:
         assert result == 2

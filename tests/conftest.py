@@ -102,3 +102,29 @@ def research_state():
         "long_term": view("6-12m"),
         "prior_conditions": [],
     }
+
+
+@pytest.fixture
+def research_questions():
+    def item(key, horizon):
+        return {
+            "id": key,
+            "relevance": "用于验证流程的合成问题",
+            "horizons": [horizon],
+            "requirements": {
+                "kind": "observation",
+                "classification": "actual",
+                "minimum": 1,
+                "complete": False,
+                "series_ids": [],
+                "reference_periods": [],
+            },
+            "evidence_ids": ["e1"],
+            "comparison_ids": [],
+            "gap": "",
+        }
+
+    return {
+        "schema_version": "market.research-questions.v1",
+        "items": [item("q1", "short_term"), item("q2", "long_term")],
+    }

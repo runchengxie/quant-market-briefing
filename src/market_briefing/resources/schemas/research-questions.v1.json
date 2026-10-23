@@ -1,0 +1,122 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "market.research-questions.v1"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "relevance": {
+            "type": "string",
+            "minLength": 1
+          },
+          "horizons": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "short_term",
+                "long_term"
+              ]
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "requirements": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "observation",
+                  "comparison"
+                ]
+              },
+              "classification": {
+                "enum": [
+                  "actual",
+                  "estimate",
+                  "any"
+                ]
+              },
+              "minimum": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "complete": {
+                "type": "boolean"
+              },
+              "series_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              },
+              "reference_periods": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "kind",
+              "classification",
+              "minimum",
+              "complete",
+              "series_ids",
+              "reference_periods"
+            ],
+            "additionalProperties": false
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "comparison_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "uniqueItems": true
+          },
+          "gap": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "relevance",
+          "horizons",
+          "requirements",
+          "evidence_ids",
+          "comparison_ids",
+          "gap"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "items"
+  ],
+  "additionalProperties": false
+}

@@ -1,6 +1,6 @@
 # Daily research continuity and evaluation
 
-Status: written design approved by the user on 2026-10-23. Implementation-plan review and execution-method selection remain pending. Builds on merged quantity-binding commit `f251b7a` / PR #11.
+Status: written design approved by the user on 2026-10-23. Implementation plan approved and Native execution selected by the user on 2026-10-23. Builds on merged quantity-binding commit `f251b7a` / PR #11.
 
 ## Intended outcome
 

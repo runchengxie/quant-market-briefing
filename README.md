@@ -35,6 +35,8 @@ Each explicit rerun creates a new immutable revision. No command sends notificat
 
 ## Commands
 
+New daily runs include structured short/long-term research state, deterministic evidence acceptance and a hash-bound research audit. Optional `--previous-run` freezes an explicitly supplied prior revision; `--comparison-input` supplies comparable owner endpoints for code-calculated changes. See [research continuity](docs/research-continuity.md). The public v1 thesis cannot encode an unassessable long-term view, so such a run remains an unpublishable draft rather than falsely becoming neutral.
+
 | Command | Input | Output |
 | --- | --- | --- |
 | research | Session date, optional intel context and live web search | Frozen evidence, analysis and five-paragraph draft |
@@ -43,8 +45,12 @@ Each explicit rerun creates a new immutable revision. No command sends notificat
 | validate | --run-dir containing draft | Mechanical findings and exit status |
 | bundle | --run-dir, --review, --producer-commit | Reviewed publication files |
 | run | Evidence file and session date | Both model stages and mechanical findings |
+| evaluate | Frozen task file and new external output directory | Offline experiment records and descriptive metrics; `--live` is explicit |
+| evaluation-grades | Evaluation run and new external output directory | Shuffled paired grading CSV and separate source key |
 
 See [Local run](docs/local-run.md), [Contracts and integration](docs/integration.md), and [Chinese editorial rules](src/market_briefing/resources/prompts/editor.zh-CN.md).
+
+The [evaluation guide](docs/evaluation.md) covers counterfactual, repeated-input, stage-pair and failure experiments. These do not establish research accuracy or source approval. Production binding is never disabled by an evaluation experiment.
 
 `research --context` accepts the existing intel web-research `schema_version: "1.0"` document as unreviewed search leads. The importer checks session, timestamps, source URLs and size before starting a model, then freezes a snapshot and input hashes in the revision. Research and challenge must verify source originals before using those leads as evidence. Candidate acceptance or an upstream review label does not grant publication approval. See [context import and follow-up scope](docs/context-import.md).
 

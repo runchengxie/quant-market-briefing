@@ -86,6 +86,50 @@ def verify_record(record: dict, briefing: dict, evidence: dict, analysis: dict) 
         ):
             raise ValueError("Derived research evidence changed")
         validate_comparison_claims(analysis, calculated)
+    if "research-questions.json" in docs:
+        from .evidence_gates import apply_findings, freeze_requirements, validate_attempt
+        from .research_state import prepare_state
+
+        question_record = docs["research-questions.json"]
+        findings = validate_attempt(
+            question_record["requirements"], question_record["questions"], evidence, calculated
+        )
+        if findings != question_record["findings"]:
+            raise ValueError("Changed research acceptance findings")
+        attempts = [docs[k] for k in sorted(docs) if k.startswith("research-attempt-")]
+        if not 1 <= len(attempts) <= 2 or "research-attempt-0001.json" not in docs:
+            raise ValueError("Invalid repair history")
+        completed = []
+        for attempt in attempts:
+            if attempt["requirements"] != question_record["requirements"]:
+                raise ValueError("Research criteria changed across attempts")
+            if attempt["status"] == "completed":
+                if (
+                    freeze_requirements(attempt["candidate"]["questions"])
+                    != question_record["requirements"]
+                ):
+                    raise ValueError("Research repair changed criteria")
+                completed.append(attempt)
+            elif attempt["status"] != "failed" or not attempt.get("error"):
+                raise ValueError("Invalid research attempt")
+        if not completed:
+            raise ValueError("Missing accepted research candidate")
+        final = completed[-1]["candidate"]
+        final_analysis = final.get("analysis", final.get("research", {}).get("analysis"))
+        if (
+            final_analysis != analysis
+            or final["questions"] != question_record["questions"]
+            or completed[-1]["findings"] != findings
+        ):
+            raise ValueError("Research candidate differs from final projection")
+        expected_state = prepare_state(
+            apply_findings(prepare_state(final["state"], analysis, evidence, prior), findings),
+            analysis,
+            evidence,
+            prior,
+        )
+        if expected_state != state:
+            raise ValueError("State differs from accepted research projection")
     validate_state(state, analysis, evidence, prior)
     if docs["continuity.json"] != build_continuity(prior, state):
         raise ValueError("Changed research continuity")
