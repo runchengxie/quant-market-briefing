@@ -65,3 +65,17 @@ def editor_output(analysis):
 @pytest.fixture
 def mutate():
     return copy.deepcopy
+
+
+@pytest.fixture
+def bound_editor_output(editor_output):
+    """Current editor wire format; editor_output remains a legacy rendered fixture."""
+    result = copy.deepcopy(editor_output)
+    for paragraph, literal, key in zip(
+        result["paragraphs"],
+        ["0.73%", "12%", "5.2%", "20%", "51%"],
+        ["e1", "e2", "e3", "e4", "e5"],
+        strict=True,
+    ):
+        paragraph["text"] = paragraph["text"].replace(literal, "{{value:" + key + "}}")
+    return result

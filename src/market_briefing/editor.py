@@ -8,11 +8,19 @@ from pathlib import Path
 from .analysis import validate_analysis
 from .codex import execute_stage
 from .contracts import schema_path, validate_document
+from .numeric_bindings import RECORD_NAME, binding_marker, render_candidate
+from .storage import write_atomic
 from .validate import validate_draft
 
 
 def assemble_briefing(
-    output: dict, evidence: dict, analysis: dict, run_id: str, revision: int
+    output: dict,
+    evidence: dict,
+    analysis: dict,
+    run_id: str,
+    revision: int,
+    *,
+    bindings: dict | None = None,
 ) -> dict:
     validate_document(output, "editor")
     validate_analysis(analysis, evidence)
@@ -36,10 +44,10 @@ def assemble_briefing(
             "editorial_rules_passed": False,
             "source_audit_passed": False,
             "errors": [],
-            "warnings": [],
+            "warnings": [binding_marker(bindings)] if bindings is not None else [],
         },
     }
-    quality = validate_draft(evidence, analysis, brief)
+    quality = validate_draft(evidence, analysis, brief, bindings=bindings)
     brief["quality"] = quality
     if not quality["errors"]:
         brief["status"] = "validated_draft"
@@ -68,4 +76,13 @@ def edit(analysis: dict, evidence: dict, config: dict) -> dict:
         command_prefix=config.get("command_prefix"),
         reasoning_effort=config.get("editor_effort"),
     )
-    return assemble_briefing(output, evidence, analysis, config["run_id"], config["revision"])
+    rendered, bindings = render_candidate(output, evidence, analysis)
+    write_atomic(Path(config["run_dir"]) / RECORD_NAME, bindings)
+    return assemble_briefing(
+        rendered,
+        evidence,
+        analysis,
+        config["run_id"],
+        config["revision"],
+        bindings=bindings,
+    )

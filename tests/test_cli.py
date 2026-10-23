@@ -15,12 +15,14 @@ def test_help(capsys):
     assert "bundle" in capsys.readouterr().out
 
 
-def test_pipeline_with_fake_model(tmp_path, evidence, analysis, editor_output, monkeypatch, capsys):
+def test_pipeline_with_fake_model(
+    tmp_path, evidence, analysis, bound_editor_output, monkeypatch, capsys
+):
     fake = tmp_path / "fake.py"
     analysis_file = tmp_path / "fake-analysis.json"
     editor_file = tmp_path / "fake-editor.json"
     analysis_file.write_text(json.dumps(analysis), encoding="utf-8")
-    editor_file.write_text(json.dumps(editor_output), encoding="utf-8")
+    editor_file.write_text(json.dumps(bound_editor_output), encoding="utf-8")
     fake.write_text(
         "import sys,json\nfrom pathlib import Path\n"
         "schema=sys.argv[sys.argv.index('--output-schema')+1]\n"

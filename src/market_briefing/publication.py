@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .contracts import load_document
+from .numeric_bindings import RECORD_NAME
 from .review import file_hash, verify_review
 from .storage import write_atomic
 
@@ -26,6 +27,8 @@ def build_bundle(run_dir: Path, review_path: Path, producer_commit: str, audienc
     try:
         for name in ["evidence", "analysis", "briefing"]:
             shutil.copyfile(run_dir / f"{name}.json", staging / f"{name}.json")
+        if (run_dir / RECORD_NAME).exists():
+            shutil.copyfile(run_dir / RECORD_NAME, staging / RECORD_NAME)
         shutil.copyfile(review_path, staging / "review.json")
         review = load_document(staging / "review.json", "review")
         verify_review(

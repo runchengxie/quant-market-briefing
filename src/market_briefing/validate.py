@@ -27,7 +27,7 @@ def _allowed_numbers(observations: list[dict]) -> set[Decimal]:
     return allowed
 
 
-def _claim_numbers(text: str, market_date: str, observations: list[dict]) -> set[Decimal]:
+def _without_contextual_numbers(text: str, market_date: str, observations: list[dict]) -> str:
     # Dates and horizon numbers may occur only inside their actual expressions.
     year, month, day = [int(part) for part in market_date.split("-")]
     text = re.sub(r"(?<!\d)6(?:至|到)12个月", "", text)
@@ -44,10 +44,22 @@ def _claim_numbers(text: str, market_date: str, observations: list[dict]) -> set
                 "",
                 text,
             )
-    return _numbers(text)
+    return text
 
 
-def validate_draft(evidence: dict, analysis: dict, briefing: dict) -> dict:
+def _claim_numbers(text: str, market_date: str, observations: list[dict]) -> set[Decimal]:
+    return _numbers(_without_contextual_numbers(text, market_date, observations))
+
+
+def validate_draft(
+    evidence: dict,
+    analysis: dict,
+    briefing: dict,
+    *,
+    bindings: dict | None = None,
+) -> dict:
+    from .numeric_bindings import MARKER, verify_bindings
+
     errors, warnings = [], []
     quality = {
         "structure_passed": True,
@@ -69,6 +81,17 @@ def validate_draft(evidence: dict, analysis: dict, briefing: dict) -> dict:
         quality["evidence_links_passed"] = False
         errors.append(str(exc))
         return quality
+    markers = [w for w in briefing["quality"]["warnings"] if w.startswith(MARKER)]
+    warnings.extend(markers)
+    bound = bool(markers) or bindings is not None
+    if bound:
+        try:
+            if bindings is None:
+                raise ValueError("Missing numeric binding record")
+            verify_bindings(bindings, evidence, analysis, briefing)
+        except (ValueError, KeyError, TypeError) as exc:
+            errors.append(str(exc))
+            quality["evidence_links_passed"] = False
     if (
         briefing["market_date"] != evidence["market_date"]
         or briefing["evidence_cutoff"] != evidence["evidence_cutoff"]
@@ -101,9 +124,9 @@ def validate_draft(evidence: dict, analysis: dict, briefing: dict) -> dict:
             errors.append(f"Paragraph {index} loses estimate qualification")
             quality["evidence_links_passed"] = False
         try:
-            if not _claim_numbers(text, evidence["market_date"], linked) <= _allowed_numbers(
-                linked
-            ):
+            if not bound and not _claim_numbers(
+                text, evidence["market_date"], linked
+            ) <= _allowed_numbers(linked):
                 errors.append(f"Paragraph {index} introduces unsupported numbers")
                 quality["evidence_links_passed"] = False
         except InvalidOperation:
@@ -112,7 +135,7 @@ def validate_draft(evidence: dict, analysis: dict, briefing: dict) -> dict:
     if BANNED.search(briefing["headline"]):
         errors.append("Headline violates plain Chinese formatting")
         quality["editorial_rules_passed"] = False
-    if not _claim_numbers(
+    if not bound and not _claim_numbers(
         briefing["headline"], evidence["market_date"], all_linked
     ) <= _allowed_numbers(all_linked):
         errors.append("Headline introduces unsupported numbers")

@@ -52,6 +52,8 @@ See [Local run](docs/local-run.md), [Contracts and integration](docs/integration
 
 Structure, evidence links, numeric tokens and text formatting are mechanically checked. These checks cannot certify semantics, correct financial units or causal explanations. Source approval is a separate review record bound to the exact evidence, analysis and briefing hashes. The producer cannot manufacture that approval.
 
+New daily editing uses observation-bound quantity tokens. The producer renders each token's stored number and unit, retains non-session reference periods, and saves `numeric-bindings.json` alongside the raw editor candidate. Validation and bundling recompute the rendering against frozen evidence and analysis; the final briefing includes the binding record's digest in its quality warnings without changing the publication schema. Legacy rendered revisions retain their existing numeric-set checks; weekly editing is unchanged. Binding proves provenance and prevents free numeric output, not correct metric wording, direction, causality or source units. See [numeric binding details](docs/local-run.md#daily-numeric-bindings).
+
 The publication envelope uses research.platform-publication.v1 and the legacy consumer ID market-intel for quant-intel-platform. A generic manifest verifier does not implement the new market.briefing.v1 renderer.
 
 Evidence may include verified numeric observations and verified textual company/macro events. Estimates retain their original reference periods. Unverified/null observations are missing inputs. Analyst/editor prompts treat supplied content as data and prohibit new facts or external research.

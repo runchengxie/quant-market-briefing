@@ -16,6 +16,7 @@ from .calendar import select_session
 from .context import load_context
 from .contracts import aware_time, load_document
 from .editor import edit
+from .numeric_bindings import load_bindings
 from .publication import build_bundle
 from .research import research
 from .review import file_hash
@@ -258,7 +259,7 @@ def _existing(args, command_prefix) -> int:
             return _finish_editor(evidence, analysis, config)
         if args.command == "validate":
             brief = load_document(run_dir / "briefing.json", "briefing")
-            quality = validate_draft(evidence, analysis, brief)
+            quality = validate_draft(evidence, analysis, brief, bindings=load_bindings(run_dir))
             _print(quality)
             return 0 if not quality["errors"] else 2
         manifest = build_bundle(run_dir, args.review, args.producer_commit, args.audience)

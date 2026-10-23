@@ -17,7 +17,7 @@ def test_original_framework_is_packaged():
 
 
 @pytest.mark.parametrize("search_event", [True, False])
-def test_web_research_and_editor(tmp_path, evidence, analysis, editor_output, search_event):
+def test_web_research_and_editor(tmp_path, evidence, analysis, bound_editor_output, search_event):
     payloads = tmp_path / "payloads.json"
     payloads.write_text(
         json.dumps(
@@ -27,7 +27,7 @@ def test_web_research_and_editor(tmp_path, evidence, analysis, editor_output, se
                     "observations": evidence["observations"],
                     "analysis": analysis,
                 },
-                "editor": editor_output,
+                "editor": bound_editor_output,
             }
         ),
         encoding="utf-8",

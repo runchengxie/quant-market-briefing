@@ -28,6 +28,18 @@ Never edit an approved revision in place. Re-run generation for a new revision a
 
 ## Review and bundle
 
+### Daily numeric bindings
+
+The daily editor returns `{{value:OBSERVATION_ID}}` in place of each indicator quantity. The ID must resolve to a verified numeric observation linked through that paragraph's `claim_ids`; a headline may use observations linked by the final paragraphs. Raw indicator numbers, common Chinese quantity spellings, unknown/unlinked IDs, malformed tokens and appended units fail generation. The exact report date and the fixed six-to-twelve-month horizon remain contextual exceptions. Other dates should be written in natural Chinese or omitted when unnecessary.
+
+Rendering inserts the original number and a canonical unit: percent `%`, percentage points `个百分点`, basis points `个基点`, USD `美元`, ratio `倍`, index level `点` and count `个`. It does not infer that a source's percentage-point unit meant percent, rescale values or round. Negative values retain an explicit `负` sign. For a reference period different from the session date, the renderer appends that period in parentheses; ISO dates and `Qn YYYY` receive deterministic Chinese formatting. Source unit errors and nonstandard period wording still need source/editorial review.
+
+`editor.candidate.json` retains the raw model output. The immutable `numeric-bindings.json` records the candidate, canonical evidence/analysis digests and each token's location, observation ID, metric, original value, unit, reference period, source and rendered text. Its digest appears in the final briefing's quality warnings, so the existing independent review binds it through the briefing hash. `validate` and `bundle` require the record for a marked briefing, recompute it and compare the exact rendered headline and paragraphs. A missing, stale or modified record fails closed. Bundles include the record as supporting provenance; published schema and consumer identifiers remain unchanged.
+
+Historical revisions without the binding marker retain the legacy checks; they must not be described as observation-bound. Weekly generation is unchanged. The low-level `assemble_briefing` helper still supports legacy already-rendered fixtures; the live daily `edit` path always binds quantities before assembly. No source approval is created by rendering or testing.
+
+This is a provenance check, not sentence-level understanding. If two observations are linked by the same paragraph, the model can still choose the wrong one or write an incorrect metric, direction or causal explanation around a valid token. The independent research/source review remains necessary. Repeated generation and counterfactual tests establish software behavior only, not real-model research accuracy.
+
 Create an external review.json conforming to resources/schemas/review.v1.json after independent source inspection. Record reviewer, reviewed_at, market_date and the lowercase SHA-256 of the exact evidence.json, analysis.json and briefing.json bytes. Decide exactly every claim referenced by the final five paragraphs. Each decision records claim_id, status and reason. Only approved claims may be bundled. Deferred/rejected material must be removed in a newly edited revision and reviewed again.
 
 ```sh
